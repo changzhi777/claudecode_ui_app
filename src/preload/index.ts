@@ -9,6 +9,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.send(channel, ...args);
   },
 
+  // 发送消息到主进程（带回调）
+  invoke: (channel: string, ...args: unknown[]) => {
+    return ipcRenderer.invoke(channel, ...args);
+  },
+
   // 监听来自主进程的响应
   on: (channel: string, callback: (...args: unknown[]) => void) => {
     ipcRenderer.on(channel, (_event, ...args) => callback(...args));
@@ -17,5 +22,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 移除监听器
   removeListener: (channel: string) => {
     ipcRenderer.removeAllListeners(channel);
+  },
+
+  // 一次性监听器
+  once: (channel: string, callback: (...args: unknown[]) => void) => {
+    ipcRenderer.once(channel, (_event, ...args) => callback(...args));
   },
 });

@@ -12,7 +12,15 @@ export type IPCChannel =
   | 'task:create'
   | 'task:update'
   | 'task:complete'
-  | 'task:fail';
+  | 'task:fail'
+  // CLI 相关频道
+  | 'cli:initializePool'
+  | 'cli:acquire'
+  | 'cli:release'
+  | 'cli:sendMessage'
+  | 'cli:getStats'
+  | 'cli:dispose'
+  | 'cli:streamData';
 
 export interface IPCMessage<T = unknown> {
   id: string;
