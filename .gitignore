@@ -5,9 +5,8 @@ node_modules/
 
 # Build outputs
 dist/
-dist-electron/
-release/
 out/
+release/
 
 # Debug
 npm-debug.log*

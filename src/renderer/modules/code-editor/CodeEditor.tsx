@@ -5,11 +5,13 @@ import { EditorTabBar } from './components/EditorTabBar';
 import { Save, RefreshCw } from 'lucide-react';
 
 export function CodeEditor() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Monaco Editor 类型未完全导出
   const editorRef = useRef<any>(null);
   const { tabs, activeTabId, updateContent, saveFile } = useEditorStore();
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Monaco Editor 类型未完全导出
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
 

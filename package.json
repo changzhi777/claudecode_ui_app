@@ -2,16 +2,26 @@
   "name": "claudecode-ui-app",
   "version": "0.1.0",
   "description": "为 ClaudeCode CLI 打造的现代化桌面 UI 界面",
-  "main": "dist/main/index.js",
-  "author": "BB小子 🤙",
+  "type": "module",
+  "main": "out/main/index.js",
+  "author": {
+    "name": "外星动物（常智）",
+    "email": "14455975@qq.com",
+    "url": "https://github.com/changzhi777"
+  },
   "license": "MIT",
   "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "npm run build && electron-builder",
+    "dev": "npm run dev:renderer",
+    "dev:renderer": "vite src/renderer",
+    "dev:electron": "electron electron-dev.js",
+    "dev:full": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && npm run dev:electron\"",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "package": "npm run build && electron-builder --mac --win --linux",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:win": "npm run build && electron-builder --win",
+    "package:linux": "npm run build && electron-builder --linux",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
@@ -43,6 +53,7 @@
     "postcss": "^8.4.38",
     "prettier": "^3.2.5",
     "tailwindcss": "^3.4.3",
+    "terser": "^5.46.1",
     "typescript": "^5.4.5",
     "vite": "^5.2.11",
     "wait-on": "^7.2.0"
@@ -50,15 +61,54 @@
   "build": {
     "appId": "com.claudecode.ui",
     "productName": "ClaudeCode UI",
+    "copyright": "Copyright (C) 2026 IoTchange",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
-      "dist/**/*",
-      "dist-electron/**/*"
+      "out/**/*",
+      "package.json"
     ],
+    "extraMetadata": {
+      "main": "out/main/index.js"
+    },
     "mac": {
-      "category": "public.app-category.developer-tools"
+      "category": "public.app-category.developer-tools",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "target": [
+        {
+          "target": "default",
+          "arch": "arm64"
+        },
+        {
+          "target": "default",
+          "arch": "x64"
+        }
+      ],
+      "icon": "build/icon.icns",
+      "minimumSystemVersion": "10.15.0"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "window": {
+        "width": 540,
+        "height": 380
+      }
     },
     "win": {
       "target": "nsis"

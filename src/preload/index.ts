@@ -1,24 +1,21 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { IPCMessage, IPCResponse } from '@shared/types/ipc';
 
-// 暴露安全的 API 给渲染进程
+// 暴露安全的 API 给渲染进程（最小化版本）
 contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
 
   // 发送消息到主进程
-  send: (message: IPCMessage) => {
-    ipcRenderer.send('ipc-message', message);
+  send: (channel: string, ...args: unknown[]) => {
+    ipcRenderer.send(channel, ...args);
   },
 
   // 监听来自主进程的响应
-  onMessage: (callback: (response: IPCResponse) => void) => {
-    ipcRenderer.on('ipc-response', (_event, response: IPCResponse) => {
-      callback(response);
-    });
+  on: (channel: string, callback: (...args: unknown[]) => void) => {
+    ipcRenderer.on(channel, (_event, ...args) => callback(...args));
   },
 
   // 移除监听器
-  removeListener: () => {
-    ipcRenderer.removeAllListeners('ipc-response');
+  removeListener: (channel: string) => {
+    ipcRenderer.removeAllListeners(channel);
   },
 });

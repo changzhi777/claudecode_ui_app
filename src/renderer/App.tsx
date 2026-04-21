@@ -1,13 +1,19 @@
+import { lazy, Suspense } from 'react';
 import { ThemeProvider } from './components/ThemeProvider';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { ViewSwitcher } from './components/ViewSwitcher';
+import { Loading } from './components/Loading';
 import { useThemeStore } from '@stores/themeStore';
 import { useThemeShortcut } from './hooks/useThemeShortcut';
 import { useViewShortcut } from './hooks/useViewShortcut';
 import { ChatUI } from './modules/chat-ui/ChatUI';
-import { Workspace } from './modules/workspace/Workspace';
 import { TaskVizContainer } from './modules/task-viz/TaskVizContainer';
 import { useViewStore } from '@stores/viewStore';
+
+// 仅懒加载 Workspace（包含大型 Monaco Editor）
+const Workspace = lazy(() =>
+  import('./modules/workspace/Workspace').then((m) => ({ default: m.Workspace }))
+);
 
 function AppContent() {
   const { currentTheme } = useThemeStore();
@@ -36,7 +42,11 @@ function AppContent() {
         {/* 主内容区 */}
         <main className="flex-1 overflow-hidden">
           {currentView === 'chat' && <ChatUI />}
-          {currentView === 'workspace' && <Workspace />}
+          {currentView === 'workspace' && (
+            <Suspense fallback={<Loading text="加载工作区..." />}>
+              <Workspace />
+            </Suspense>
+          )}
         </main>
 
         {/* 任务可视化（侧边栏） */}

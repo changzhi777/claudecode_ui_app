@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { ChatMessageList } from './components/ChatMessageList';
 import { ChatInput } from './components/ChatInput';
+import { EmptyState } from './components/EmptyState';
 import { useChatStore } from '@stores/chatStore';
 import { Plus } from 'lucide-react';
 
@@ -77,7 +78,11 @@ export function ChatUI() {
       </div>
 
       {/* 消息列表 */}
-      <ChatMessageList />
+      {session && session.messages.length > 0 ? (
+        <ChatMessageList />
+      ) : (
+        <EmptyState onCreateNew={() => createSession()} />
+      )}
 
       {/* 输入框 */}
       <ChatInput

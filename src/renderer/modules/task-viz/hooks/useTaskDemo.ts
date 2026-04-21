@@ -4,12 +4,16 @@ import { useTaskStore } from '@stores/taskStore';
 /**
  * Hook 用于演示任务可视化
  * TODO: 移除这个 Hook，改用真实的 IPC 通信
+ *
+ * @param enabled - 是否启用演示（默认仅在开发环境启用）
  */
-export function useTaskDemo() {
+export function useTaskDemo(enabled: boolean = true) {
   const { createGroup, addTask, updateTask, completeGroup } = useTaskStore();
   const taskIdsRef = useRef<string[]>([]);
 
   useEffect(() => {
+    if (!enabled) return;
+
     // 演示：创建一个示例任务组
     const groupId = createGroup('演示任务组');
 
@@ -92,10 +96,10 @@ export function useTaskDemo() {
           if (task && task.progress < 100) {
             const newProgress = Math.min(task.progress + 10, 100);
             updateTask(groupId, task.id, { progress: newProgress });
-          } else {
+          } else if (task) {
             clearInterval(progressInterval);
             // 标记为完成
-            updateTask(groupId, currentTask.id, { status: 'completed', progress: 100 });
+            updateTask(groupId, task.id, { status: 'completed', progress: 100 });
             taskIndex++;
             setTimeout(runNextTask, 500);
           }
@@ -111,5 +115,5 @@ export function useTaskDemo() {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [createGroup, addTask, updateTask, completeGroup]);
+  }, [enabled, createGroup, addTask, updateTask, completeGroup]);
 }

@@ -22,20 +22,32 @@
 # 安装依赖
 pnpm install
 
-# 启动 Web 开发模式（推荐）
+# 启动开发模式（Electron + Vite）
 pnpm dev
-
-# 启动 Electron 桌面应用
-pnpm electron:dev
 
 # 构建应用
 pnpm build
 
-# 打包桌面应用
-pnpm electron:build
+# 预览构建结果
+pnpm preview
+
+# 打包桌面应用（所有平台）
+pnpm package
+
+# 仅打包 macOS
+pnpm package:mac
+
+# 仅打包 Windows
+pnpm package:win
+
+# 仅打包 Linux
+pnpm package:linux
 ```
 
-**注意**：初次开发建议使用 `pnpm dev` 在浏览器中快速预览主题切换效果。
+**注意**：
+- 开发模式下会自动启动 Electron 桌面应用
+- 主题切换可在开发模式下实时预览
+- 支持热更新，修改代码后自动刷新
 
 ## 项目结构
 
@@ -93,23 +105,25 @@ claudecode_ui_app/
 - 🎨 **三大主题系统** - Claude / Cursor / Warp 可切换
 - 💬 **AI 对话界面** - 类似 ChatGPT 的流畅对话体验
 - 🔄 **会话管理** - 新建/切换/删除对话，自动保存
+- 📜 **会话历史** - 带搜索的历史记录侧边栏
+- 💾 **导出功能** - 支持 Markdown、JSON、TXT 格式
 - 📁 **文件树组件** - VS Code 风格的文件浏览
 - ✏️ **Monaco Editor** - 专业代码编辑器
 - 📑 **多标签页** - 同时编辑多个文件
 - 📊 **任务可视化** - 实时任务进度追踪
 - 🔄 **视图切换** - 对话界面 ↔ 工作区
 - 🔌 **IPC 通信桥接** - 渲染进程 ↔ 主进程
-- ⌨️ **快捷键支持** - ⌘T 切换主题，⌘K 切换视图
+- ⌨️ **快捷键支持** - ⌘T 切换主题，⌘K 切换视图，⌘K 打开快捷键面板
+- ⚙️ **设置面板** - 外观、快捷键、通知、账户配置
 - 💾 **状态持久化** - 对话、标签页、主题偏好自动保存
 
 ### 🚧 开发中
 
 - 与 ClaudeCode CLI 双向通信
-- 会话历史侧边栏
-- 导出对话功能
 - 文件内容实际加载与保存
 - 代码格式化与高亮优化
-- 搜索功能
+- 高级搜索功能
+- 云端同步支持
 
 ## 设计系统
 
@@ -189,7 +203,8 @@ claudecode_ui_app/
 - **组织**: IoTchange
 - **联系**: 14455975@qq.com
 - **版权**: Copyright (C) 2026 IoTchange - All Rights Reserved
-- **版本**: v0.0.1
+- **版本**: v0.1.0
+- **GitHub**: https://github.com/changzhi777/claudecode_ui_app
 - **许可证**: MIT
 
 ## 许可证

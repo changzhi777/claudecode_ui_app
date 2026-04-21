@@ -1,10 +1,7 @@
 import { app, BrowserWindow } from 'electron';
-import * as path from 'path';
-import { IPCServer } from '../ipc-bridge/ipcServer';
+import path from 'path';
 
-let mainWindow: BrowserWindow | null = null;
-
-const isDev = process.env.NODE_ENV === 'development';
+let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -12,43 +9,41 @@ function createWindow() {
     height: 900,
     minWidth: 800,
     minHeight: 600,
-    backgroundColor: '#f5f4ed',
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true,
+      webSecurity: false, // 开发模式禁用 web 安全
     },
     titleBarStyle: 'hiddenInset',
     show: false,
   });
 
-  if (isDev) {
-    mainWindow.loadURL('http://localhost:5173').then(() => {
-      // 延迟打开 DevTools，避免影响启动性能
-      setTimeout(() => {
-        mainWindow?.webContents.openDevTools();
-      }, 1500);
+  // 加载 Vite 开发服务器
+  mainWindow.loadURL('http://localhost:5173')
+    .then(() => {
+      console.log('页面加载成功');
+    })
+    .catch(err => {
+      console.error('页面加载失败:', err);
     });
-  } else {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
-  }
+
+  // 打开开发者工具
+  mainWindow.webContents.openDevTools();
 
   mainWindow.once('ready-to-show', () => {
     mainWindow?.show();
-    mainWindow?.focus();
+    console.log('Electron 窗口已显示');
   });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+    console.log('Electron 窗口已关闭');
   });
 }
 
 app.whenReady().then(() => {
+  console.log('Electron 应用准备就绪');
   createWindow();
-
-  // 初始化 IPC 服务器
-  new IPCServer();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -62,3 +57,5 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
+console.log('Electron 开发模式启动中...');
