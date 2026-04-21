@@ -1,6 +1,6 @@
 {
   "name": "claudecode-ui-app",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "为 ClaudeCode CLI 打造的现代化桌面 UI 界面",
   "type": "module",
   "main": "out/main/index.js",
