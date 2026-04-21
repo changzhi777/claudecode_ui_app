@@ -1,0 +1,285 @@
+{
+  "timestamp": "2026-04-22T04:03:38.000Z",
+  "projectName": "ClaudeCode UI App",
+  "projectSummary": "为 ClaudeCode CLI 开发的 UI 使用界面",
+  "scanInfo": {
+    "totalFiles": 0,
+    "scannedFiles": 0,
+    "coverage": 0,
+    "status": "initialized",
+    "note": "项目处于初始化阶段，尚未创建源代码文件"
+  },
+  "modules": [
+    {
+      "path": "src/main",
+      "name": "Electron 主进程",
+      "status": "planning",
+      "entry": "src/main/index.ts",
+      "interfaces": [
+        "createMainWindow()",
+        "startCLIProcess()",
+        "stopCLIProcess()",
+        "readFile()",
+        "writeFile()"
+      ],
+      "dependencies": [
+        "electron",
+        "electron-vite",
+        "chokidar"
+      ],
+      "coverage": {
+        "hasEntry": false,
+        "hasTests": false,
+        "hasConfig": false,
+        "complete": 0
+      }
+    },
+    {
+      "path": "src/renderer/modules/chat-ui",
+      "name": "AI 对话界面",
+      "status": "planning",
+      "entry": "src/renderer/modules/chat-ui/index.tsx",
+      "interfaces": [
+        "ChatWindow",
+        "MessageBubble",
+        "MessageInput"
+      ],
+      "dependencies": [
+        "react-markdown",
+        "react-syntax-highlighter",
+        "lucide-react"
+      ],
+      "coverage": {
+        "hasEntry": false,
+        "hasTests": false,
+        "hasConfig": false,
+        "complete": 0
+      }
+    },
+    {
+      "path": "src/renderer/modules/code-editor",
+      "name": "代码编辑器",
+      "status": "planning",
+      "entry": "src/renderer/modules/code-editor/index.tsx",
+      "interfaces": [
+        "CodeEditor",
+        "TabBar",
+        "MonacoWrapper"
+      ],
+      "dependencies": [
+        "@monaco-editor/react",
+        "monaco-editor"
+      ],
+      "coverage": {
+        "hasEntry": false,
+        "hasTests": false,
+        "hasConfig": false,
+        "complete": 0
+      }
+    },
+    {
+      "path": "src/renderer/modules/file-tree",
+      "name": "文件树",
+      "status": "planning",
+      "entry": "src/renderer/modules/file-tree/index.tsx",
+      "interfaces": [
+        "FileTree",
+        "FileTreeNode",
+        "FileTreeSearch"
+      ],
+      "dependencies": [
+        "lucide-react",
+        "react-virtuoso"
+      ],
+      "coverage": {
+        "hasEntry": false,
+        "hasTests": false,
+        "hasConfig": false,
+        "complete": 0
+      }
+    },
+    {
+      "path": "src/renderer/modules/task-viz",
+      "name": "任务可视化",
+      "status": "planning",
+      "entry": "src/renderer/modules/task-viz/index.tsx",
+      "interfaces": [
+        "TaskVisualization",
+        "TaskList",
+        "TaskLogs"
+      ],
+      "dependencies": [
+        "date-fns",
+        "lucide-react"
+      ],
+      "coverage": {
+        "hasEntry": false,
+        "hasTests": false,
+        "hasConfig": false,
+        "complete": 0
+      }
+    },
+    {
+      "path": "src/renderer/modules/session-mgr",
+      "name": "会话管理",
+      "status": "planning",
+      "entry": "src/renderer/modules/session-mgr/index.tsx",
+      "interfaces": [
+        "SessionManager",
+        "SessionList",
+        "SessionSearch"
+      ],
+      "dependencies": [
+        "zustand",
+        "date-fns",
+        "lucide-react"
+      ],
+      "coverage": {
+        "hasEntry": false,
+        "hasTests": false,
+        "hasConfig": false,
+        "complete": 0
+      }
+    },
+    {
+      "path": "src/ipc-bridge",
+      "name": "IPC 通信桥接",
+      "status": "planning",
+      "entry": "src/ipc-bridge/channels.ts",
+      "interfaces": [
+        "IPC_CHANNELS",
+        "ipcInvoker",
+        "registerIPCHandlers()"
+      ],
+      "dependencies": [
+        "electron",
+        "zod"
+      ],
+      "coverage": {
+        "hasEntry": false,
+        "hasTests": false,
+        "hasConfig": false,
+        "complete": 0
+      }
+    },
+    {
+      "path": "src/stores",
+      "name": "Zustand 状态管理",
+      "status": "planning",
+      "entry": "src/stores/index.ts",
+      "interfaces": [
+        "useSessionStore",
+        "useTaskStore",
+        "useFileStore",
+        "useUIStore"
+      ],
+      "dependencies": [
+        "zustand",
+        "immer"
+      ],
+      "coverage": {
+        "hasEntry": false,
+        "hasTests": false,
+        "hasConfig": false,
+        "complete": 0
+      }
+    },
+    {
+      "path": "src/shared",
+      "name": "共享工具",
+      "status": "planning",
+      "entry": "src/shared/index.ts",
+      "interfaces": [
+        "generateId()",
+        "formatDate()",
+        "validateConfig()"
+      ],
+      "dependencies": [],
+      "coverage": {
+        "hasEntry": false,
+        "hasTests": false,
+        "hasConfig": false,
+        "complete": 0
+      }
+    }
+  ],
+  "gaps": [
+    {
+      "module": "src/main",
+      "missing": [
+        "主进程入口文件",
+        "IPC 处理器",
+        "CLI 进程管理器",
+        "窗口管理器"
+      ]
+    },
+    {
+      "module": "src/renderer/modules/chat-ui",
+      "missing": [
+        "聊天窗口组件",
+        "消息气泡组件",
+        "输入框组件"
+      ]
+    },
+    {
+      "module": "src/renderer/modules/code-editor",
+      "missing": [
+        "Monaco Editor 集成",
+        "标签页管理",
+        "文件保存逻辑"
+      ]
+    },
+    {
+      "module": "src/ipc-bridge",
+      "missing": [
+        "频道定义",
+        "主进程处理器",
+        "渲染进程调用器"
+      ]
+    },
+    {
+      "module": "src/stores",
+      "missing": [
+        "会话 Store",
+        "任务 Store",
+        "文件 Store",
+        "UI Store"
+      ]
+    }
+  ],
+  "nextSteps": [
+    "1. 初始化 package.json 与项目配置",
+    "2. 配置 Vite + Electron 开发环境",
+    "3. 创建项目基础目录结构",
+    "4. 实现共享类型与工具函数 (src/shared)",
+    "5. 搭建 IPC 通信桥接 (src/ipc-bridge)",
+    "6. 实现 Zustand 状态管理 (src/stores)",
+    "7. 开发 Electron 主进程 (src/main)",
+    "8. 开发渲染进程 UI 组件 (src/renderer/modules)",
+    "9. 集成 CLI 进程管理",
+    "10. 编写单元测试与集成测试"
+  ],
+  "ignorePatterns": [
+    "node_modules/**",
+    ".git/**",
+    ".github/**",
+    "dist/**",
+    "build/**",
+    ".next/**",
+    "__pycache__/**",
+    "*.lock",
+    "*.log",
+    "*.bin",
+    "*.pdf",
+    "*.png",
+    "*.jpg",
+    "*.jpeg",
+    "*.gif",
+    "*.mp4",
+    "*.zip",
+    "*.tar",
+    "*.gz"
+  ],
+  "truncated": false,
+  "version": "0.1.0"
+}
