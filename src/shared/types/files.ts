@@ -45,6 +45,7 @@ export interface EditorActions {
   setFileTree: (tree: FileNode[]) => void;
   toggleExpand: (path: string) => void;
   selectFile: (path: string) => void;
+  refreshFileTree: () => Promise<void>;
 
   // 标签页操作
   openTab: (file: FileNode) => void;

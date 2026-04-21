@@ -1,87 +1,42 @@
+import { useEffect } from 'react';
 import { useEditorStore } from '@stores/editorStore';
 import { FileTreeItem } from './components/FileTreeItem';
 import { Files } from 'lucide-react';
+import { getFileOperationHandler } from '../../services/FileOperationHandler';
+import type { ElectronAPI } from '../../global.d.ts';
 
 export function FileTree() {
-  const { fileTree, expandedPaths, selectedPath, toggleExpand, selectFile, setFileTree } =
+  const { fileTree, expandedPaths, selectedPath, toggleExpand, selectFile, setFileTree, refreshFileTree } =
     useEditorStore();
 
-  // 初始化示例文件树
-  // TODO: 从实际文件系统加载
-  if (fileTree.length === 0) {
-    const demoTree = [
-      {
-        id: 'root',
-        name: 'claudecode-ui-app',
-        path: '/claudecode-ui-app',
-        type: 'directory' as const,
-        isExpanded: true,
-        children: [
-          {
-            id: 'src',
-            name: 'src',
-            path: '/claudecode-ui-app/src',
-            type: 'directory' as const,
-            children: [
-              {
-                id: 'renderer',
-                name: 'renderer',
-                path: '/claudecode-ui-app/src/renderer',
-                type: 'directory' as const,
-                children: [
-                  {
-                    id: 'App.tsx',
-                    name: 'App.tsx',
-                    path: '/claudecode-ui-app/src/renderer/App.tsx',
-                    type: 'file' as const,
-                  },
-                  {
-                    id: 'main.tsx',
-                    name: 'main.tsx',
-                    path: '/claudecode-ui-app/src/renderer/main.tsx',
-                    type: 'file' as const,
-                  },
-                ],
-              },
-              {
-                id: 'stores',
-                name: 'stores',
-                path: '/claudecode-ui-app/src/stores',
-                type: 'directory' as const,
-                children: [
-                  {
-                    id: 'chatStore.ts',
-                    name: 'chatStore.ts',
-                    path: '/claudecode-ui-app/src/stores/chatStore.ts',
-                    type: 'file' as const,
-                  },
-                  {
-                    id: 'themeStore.ts',
-                    name: 'themeStore.ts',
-                    path: '/claudecode-ui-app/src/stores/themeStore.ts',
-                    type: 'file' as const,
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            id: 'package.json',
-            name: 'package.json',
-            path: '/claudecode-ui-app/package.json',
-            type: 'file' as const,
-          },
-          {
-            id: 'README.md',
-            name: 'README.md',
-            path: '/claudecode-ui-app/README.md',
-            type: 'file' as const,
-          },
-        ],
-      },
-    ];
-    setFileTree(demoTree);
-  }
+  // 初始化文件树和 CLI 事件监听
+  useEffect(() => {
+    // 初始化文件树
+    const initializeFileTree = async () => {
+      await refreshFileTree();
+    };
+
+    initializeFileTree();
+
+    // 监听 CLI 流式数据事件
+    const handleStreamData = (_event: unknown, data: any) => {
+      const handler = getFileOperationHandler();
+      const events = handler.handleStreamData(data);
+
+      // 处理文件操作事件
+      for (const event of events) {
+        handler.handleFileOperation(event);
+      }
+    };
+
+    // 订阅 CLI 流式数据
+    (window.electronAPI as ElectronAPI).on('cli:streamData', handleStreamData);
+
+    // 清理
+    return () => {
+      (window.electronAPI as ElectronAPI).removeChannelListener('cli:streamData');
+    };
+  }, [refreshFileTree]);
 
   if (fileTree.length === 0) {
     return (

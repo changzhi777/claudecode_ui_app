@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { FileNode, EditorTab, EditorState, EditorActions } from '@shared/types/files';
+import type { ElectronAPI } from '../renderer/global.d.ts';
 
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
@@ -36,6 +37,62 @@ const getLanguageFromFileName = (fileName: string): string => {
   };
   return languageMap[ext || ''] || 'plaintext';
 };
+
+/**
+ * 递归构建文件树节点
+ */
+async function buildFileTree(
+  dirPath: string,
+  maxDepth = 3,
+  currentDepth = 0
+): Promise<FileNode[]> {
+  try {
+    if (currentDepth >= maxDepth) {
+      return [];
+    }
+
+    const result = await (window.electronAPI as unknown as ElectronAPI).invoke('file:list', {
+      path: dirPath,
+      recursive: false,
+    }) as { success: boolean; data?: { files: Array<{ name: string; path: string; type: 'file' | 'directory'; size?: number; modified?: number }> } };
+
+    if (!result?.success || !result?.data) {
+      return [];
+    }
+
+    const nodes: FileNode[] = [];
+
+    for (const item of result.data.files) {
+      const node: FileNode = {
+        id: item.path,
+        name: item.name,
+        path: item.path,
+        type: item.type,
+        metadata: {
+          size: item.size,
+          modified: item.modified,
+        },
+      };
+
+      // 如果是目录，递归加载子节点（有限深度）
+      if (item.type === 'directory' && currentDepth < maxDepth - 1) {
+        try {
+          node.children = await buildFileTree(item.path, maxDepth, currentDepth + 1);
+        } catch (error) {
+          console.error(`[buildFileTree] 加载子目录失败: ${item.path}`, error);
+          node.children = [];
+        }
+      }
+
+      nodes.push(node);
+    }
+
+    return nodes;
+  } catch (error) {
+    console.error('[buildFileTree] 构建文件树失败:', error);
+    return [];
+  }
+}
 
 export const useEditorStore = create<EditorState & EditorActions>()(
   persist(
@@ -139,6 +196,32 @@ export const useEditorStore = create<EditorState & EditorActions>()(
           isDirty: false,
         }));
         // TODO: 实际保存到文件系统
+      },
+
+      // 刷新文件树
+      refreshFileTree: async () => {
+        try {
+          // 获取项目根路径（从第一个标签页推断，或使用默认值）
+          const { tabs } = get();
+          let rootPath = '/Users/mac/cz_code/claudecode_ui_app'; // 默认项目路径
+
+          if (tabs.length > 0 && tabs[0].filePath) {
+            // 从文件路径推断项目根
+            const pathParts = tabs[0].filePath.split('/');
+            const srcIndex = pathParts.indexOf('src');
+            if (srcIndex > 0) {
+              rootPath = pathParts.slice(0, srcIndex).join('/');
+            }
+          }
+
+          // 构建文件树
+          const tree = await buildFileTree(rootPath, 3, 0);
+
+          // 更新文件树
+          set({ fileTree: tree });
+        } catch (error) {
+          console.error('[refreshFileTree] 刷新文件树失败:', error);
+        }
       },
     }),
     {

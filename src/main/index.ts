@@ -2,9 +2,11 @@ import { app, BrowserWindow } from 'electron';
 import * as path from 'path';
 import { IPCServer } from '../ipc-bridge/ipcServer';
 import { CLIPCHandlers } from './ipc/cli-handlers';
+import { ConfigHandlers } from './ipc/config-handlers';
 
 let mainWindow: BrowserWindow | null = null;
 let cliHandlersInstance: CLIPCHandlers | undefined;
+let configHandlersInstance: ConfigHandlers | undefined;
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -55,6 +57,9 @@ app.whenReady().then(() => {
   // 初始化 CLI IPC handlers
   cliHandlersInstance = new CLIPCHandlers();
 
+  // 初始化配置 IPC handlers
+  configHandlersInstance = new ConfigHandlers();
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -72,5 +77,8 @@ app.on('window-all-closed', () => {
 app.on('before-quit', async () => {
   if (cliHandlersInstance) {
     await cliHandlersInstance.dispose();
+  }
+  if (configHandlersInstance) {
+    configHandlersInstance.dispose();
   }
 });

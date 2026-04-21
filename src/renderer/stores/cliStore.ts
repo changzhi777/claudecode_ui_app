@@ -54,7 +54,7 @@ export interface SessionStats {
 /**
  * CLI Store 状态
  */
-interface CLIStoreState {
+export interface CLIStoreState {
   // 会话状态
   sessionId: string | null;
   isConnected: boolean;
@@ -325,7 +325,7 @@ export const useCLIStore = create<CLIStoreState>((set, get) => ({
         name: tool.name,
         status,
         input: tool.input,
-        ...(result && { output: result }),
+        ...(result ? { output: result as ToolCall['output'] } : {}),
         ...(status === 'completed' || status === 'failed' ? { duration: Date.now() - (tool.startTime || Date.now()) } : {})
       };
 

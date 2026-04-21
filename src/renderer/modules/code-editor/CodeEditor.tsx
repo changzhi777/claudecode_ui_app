@@ -1,13 +1,36 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { useEditorStore } from '@stores/editorStore';
 import { EditorTabBar } from './components/EditorTabBar';
 import { Save, RefreshCw } from 'lucide-react';
+import { getFileOperationHandler } from '../../services/FileOperationHandler';
+import type { ElectronAPI } from '../../global.d.ts';
 
 export function CodeEditor() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Monaco Editor 类型未完全导出
   const editorRef = useRef<any>(null);
   const { tabs, activeTabId, updateContent, saveFile } = useEditorStore();
+
+  // 监听 CLI 流式数据事件
+  useEffect(() => {
+    const handleStreamData = (_event: unknown, data: any) => {
+      const handler = getFileOperationHandler();
+      const events = handler.handleStreamData(data);
+
+      // 处理文件操作事件
+      for (const event of events) {
+        handler.handleFileOperation(event);
+      }
+    };
+
+    // 订阅 CLI 流式数据
+    (window.electronAPI as ElectronAPI).on('cli:streamData', handleStreamData);
+
+    // 清理
+    return () => {
+      (window.electronAPI as ElectronAPI).removeChannelListener('cli:streamData');
+    };
+  }, []);
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
 

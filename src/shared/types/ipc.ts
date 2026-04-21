@@ -20,7 +20,13 @@ export type IPCChannel =
   | 'cli:sendMessage'
   | 'cli:getStats'
   | 'cli:dispose'
-  | 'cli:streamData';
+  | 'cli:streamData'
+  // 配置相关频道
+  | 'config:readClaude'
+  | 'config:readModels'
+  | 'config:readAll'
+  | 'config:getCurrentModel'
+  | 'config:getApiKey';
 
 export interface IPCMessage<T = unknown> {
   id: string;

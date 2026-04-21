@@ -98,13 +98,13 @@ function ToolCallCard({ tool }: ToolCallCardProps) {
         </details>
       )}
 
-      {tool.output && (
+      {tool.output ? (
         <details className="tool-output">
           <summary>输出</summary>
-          {/* @ts-ignore */}
+          {/* @ts-ignore - tool.output 类型未知，但 JSON.stringify 可以处理 */}
           <pre>{JSON.stringify(tool.output, null, 2)}</pre>
         </details>
-      )}
+      ) : null}
 
       {tool.error && (
         <div className="tool-error">
