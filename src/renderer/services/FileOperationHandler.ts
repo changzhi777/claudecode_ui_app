@@ -163,13 +163,20 @@ export class FileOperationHandler {
    */
   private async openFileInEditor(filePath: string): Promise<void> {
     try {
-      // 通过 IPC 读取文件内容
-      const content = await (window.electronAPI as ElectronAPI).invoke('file:read', { path: filePath }) as string;
+      // 检查是否是大文件
+      const sizeCheck = await (window.electronAPI as ElectronAPI).invoke('file:isLargeFile', filePath) as {
+        success: boolean;
+        isLarge?: boolean;
+        size?: number;
+      };
+
+      const isLarge = sizeCheck.success && sizeCheck.isLarge;
+      const fileSize = sizeCheck.size || 0;
 
       // 检测语言类型
       const language = this.detectLanguage(filePath);
 
-      // 创建 FileNode 对象（匹配 store 的 openTab 签名）
+      // 创建 FileNode 对象
       const fileNode = {
         id: filePath,
         name: filePath.split('/').pop() || filePath,
@@ -183,15 +190,64 @@ export class FileOperationHandler {
       // 打开标签页
       this.editorStore.getState().openTab(fileNode);
 
-      // 更新标签页内容（因为 openTab 中 content 是空的）
-      const { tabs, activeTabId } = this.editorStore.getState();
-      const activeTab = tabs.find((t) => t.id === activeTabId);
-      if (activeTab && activeTab.filePath === filePath) {
-        this.editorStore.getState().updateContent(content);
+      if (isLarge) {
+        // 大文件：分块加载
+        await this.loadLargeFileInChunks(filePath, fileSize);
+      } else {
+        // 小文件：直接读取
+        const content = await (window.electronAPI as ElectronAPI).invoke('file:read', { path: filePath }) as string;
+
+        // 更新标签页内容
+        const { tabs, activeTabId } = this.editorStore.getState();
+        const activeTab = tabs.find((t) => t.id === activeTabId);
+        if (activeTab && activeTab.filePath === filePath) {
+          this.editorStore.getState().updateContent(content);
+        }
       }
     } catch (error) {
       console.error('[FileOperationHandler] 打开文件失败:', error);
     }
+  }
+
+  /**
+   * 分块加载大文件
+   */
+  private async loadLargeFileInChunks(filePath: string, fileSize: number): Promise<void> {
+    const chunkSize = 8192; // 8KB
+    let content = '';
+    let loadedBytes = 0;
+
+    // 监听文件块事件
+    const chunkListener = (_event: unknown, data: { filePath: string; chunk: { index: number; data: string; isLast: boolean } }) => {
+      if (data.filePath === filePath) {
+        content += data.chunk.data;
+        loadedBytes += data.chunk.data.length;
+
+        // 更新进度
+        const progress = Math.round((loadedBytes / fileSize) * 100);
+        console.log(`[FileOperationHandler] 文件加载进度: ${progress}%`);
+
+        // 更新编辑器内容（每次块到达时更新）
+        const { tabs, activeTabId } = this.editorStore.getState();
+        const activeTab = tabs.find((t) => t.id === activeTabId);
+        if (activeTab && activeTab.filePath === filePath) {
+          this.editorStore.getState().updateContent(content);
+        }
+
+        // 最后一个块
+        if (data.chunk.isLast) {
+          console.log(`[FileOperationHandler] 大文件加载完成: ${filePath}`);
+          // 移除监听器
+          (window.electronAPI as ElectronAPI).removeListener('file:chunk', chunkListener);
+        }
+      }
+    };
+
+    // 注册监听器
+    (window.electronAPI as ElectronAPI).on('file:chunk', chunkListener);
+
+    // 启动分块读取
+    await (window.electronAPI as ElectronAPI).invoke('file:readChunked', filePath, { chunkSize });
   }
 
   /**

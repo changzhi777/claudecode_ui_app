@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # 开发环境
+  app-dev:
+    build:
+      context: .
+      target: development
+    container_name: claudecode-ui-dev
+    ports:
+      - "5173:5173"
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    command: pnpm dev
+    stdin_open: true
+    tty: true
+
+  # 生产环境
+  app-prod:
+    build:
+      context: .
+      target: production
+    container_name: claudecode-ui-prod
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+  # 测试环境
+  app-test:
+    build:
+      context: .
+      target: development
+    container_name: claudecode-ui-test
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=test
+    command: pnpm test
+    profiles:
+      - test
+
+  # E2E测试环境
+  app-e2e:
+    build:
+      context: .
+      target: development
+    container_name: claudecode-ui-e2e
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - E2E=true
+    command: pnpm test:e2e
+    profiles:
+      - e2e
+
+networks:
+  default:
+    name: claudecode-ui-network
+
+volumes:
+  node_modules:

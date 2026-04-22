@@ -67,10 +67,16 @@ export class CLIProcess extends EventEmitter {
 
     return new Promise((resolve, reject) => {
       try {
+        // 记录启动命令（便于调试）
+        const command = `${this.config.cliPath} ${(this.config.args || []).join(' ')}`;
+        this.logger.info('CLIProcess', `启动命令: ${command}`);
+
         this.process = spawn(this.config.cliPath, this.config.args || [], {
           cwd: this.config.cwd,
           env: { ...process.env, ...this.config.env }
         });
+
+        this.logger.info('CLIProcess', `进程已创建，PID: ${this.process.pid}, 工作目录: ${this.config.cwd || process.cwd()}`);
 
         this.isRunning = true;
         this.lastActivity = Date.now();

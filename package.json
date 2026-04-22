@@ -1,6 +1,6 @@
 {
   "name": "claudecode-ui-app",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "为 ClaudeCode CLI 打造的现代化桌面 UI 界面",
   "type": "module",
   "main": "out/main/index.js",
@@ -26,8 +26,15 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css,md}\"",
     "test": "vitest",
+    "test:run": "vitest run",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "demo": "bash scripts/demo.sh",
+    "docker:up": "docker-compose up app-dev",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build",
+    "clean": "rm -rf dist out node_modules/.vite",
+    "preinstall": "node scripts/check-version.js"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

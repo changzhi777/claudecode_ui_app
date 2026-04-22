@@ -61,6 +61,8 @@ export class CLIProcessPool extends EventEmitter {
   private config: PoolConfig;
   private healthCheckTimer?: NodeJS.Timeout;
   private logger = IPCLogger.getInstance();
+  private restartRetryCount: Map<string, number> = new Map(); // pid -> 重试次数
+  private readonly MAX_RESTART_RETRIES = 3; // 最大重启重试次数
 
   constructor(config: PoolConfig) {
     super();
@@ -205,9 +207,9 @@ export class CLIProcessPool extends EventEmitter {
     const process = new CLIProcess({
       cliPath: this.config.cliPath,
       args: [
-        '-p',
-        '--input-format=stream-json',
-        '--output-format=stream-json',
+        '--print',
+        '--input-format', 'stream-json',
+        '--output-format', 'stream-json',
         '--verbose'
       ]
     });
@@ -216,19 +218,83 @@ export class CLIProcessPool extends EventEmitter {
 
     // 监听进程退出
     process.on('exit', (pid) => {
-      this.logger.warn('ProcessPool', `进程 ${pid} 意外退出`);
+      this.logger.warn('ProcessPool', `进程 ${pid} 意常退出，准备自动重启`);
+
+      // 从进程列表中移除
       this.processes.delete(pid);
       this.idleProcesses.delete(pid);
+      this.restartRetryCount.delete(pid); // 清除重试计数
 
-      // 清理会话映射
+      // 收集受影响的会话
+      const affectedSessions: string[] = [];
       for (const [sessionId, sessionPid] of this.sessionMap.entries()) {
         if (sessionPid === pid) {
+          affectedSessions.push(sessionId);
           this.sessionMap.delete(sessionId);
         }
       }
+
+      // 自动重启进程（带重试限制）
+      this.restartProcessWithRetry(pid, affectedSessions, 0);
     });
 
     return process;
+  }
+
+  /**
+   * 重启进程（带重试限制，防止无限递归）
+   */
+  private restartProcessWithRetry(
+    oldPid: string,
+    affectedSessions: string[],
+    retryCount: number
+  ): void {
+    // 检查重试次数
+    if (retryCount >= this.MAX_RESTART_RETRIES) {
+      this.logger.error('ProcessPool', `进程 ${oldPid} 重启失败次数过多（${retryCount}次），放弃重启`);
+      this.emit('restart-failed', { pid: oldPid, affectedSessions });
+      return;
+    }
+
+    // 记录重试次数
+    this.restartRetryCount.set(oldPid, retryCount + 1);
+
+    // 指数退避：5秒 * (2 ^ retryCount)
+    const delay = 5000 * Math.pow(2, retryCount);
+
+    this.logger.info('ProcessPool', `进程 ${oldPid} 将在 ${delay}ms 后重启（第 ${retryCount + 1}/${this.MAX_RESTART_RETRIES} 次尝试）`);
+
+    setTimeout(async () => {
+      try {
+        // 创建新进程
+        const newProcess = await this.spawnProcess();
+        this.processes.set(newProcess.pid, newProcess);
+        this.idleProcesses.add(newProcess.pid);
+
+        this.logger.info('ProcessPool', `进程已重启: ${oldPid} → ${newProcess.pid}`);
+
+        // 通知渲染进程重连（通过IPC）
+        this.emit('process-restarted', {
+          oldPid,
+          newPid: newProcess.pid,
+          affectedSessions
+        });
+
+        // 为受影响的会话重新分配进程
+        for (const sessionId of affectedSessions) {
+          const process = this.processes.get(newProcess.pid);
+          if (process) {
+            this.sessionMap.set(sessionId, newProcess.pid);
+            this.logger.info('ProcessPool', `会话 ${sessionId} 已重新分配到进程 ${newProcess.pid}`);
+          }
+        }
+      } catch (error) {
+        this.logger.error('ProcessPool', `重启进程失败（第 ${retryCount + 1} 次尝试）: ${error}`);
+
+        // 继续重试
+        this.restartProcessWithRetry(oldPid, affectedSessions, retryCount + 1);
+      }
+    }, delay);
   }
 
   /**

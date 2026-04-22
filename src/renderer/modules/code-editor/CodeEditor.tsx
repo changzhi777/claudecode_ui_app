@@ -9,7 +9,7 @@ import type { ElectronAPI } from '../../global.d.ts';
 export function CodeEditor() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Monaco Editor 类型未完全导出
   const editorRef = useRef<any>(null);
-  const { tabs, activeTabId, updateContent, saveFile } = useEditorStore();
+  const { tabs, activeTabId, updateContent, saveFile, closeTab } = useEditorStore();
 
   // 监听 CLI 流式数据事件
   useEffect(() => {
@@ -33,6 +33,17 @@ export function CodeEditor() {
   }, []);
 
   const activeTab = tabs.find((t) => t.id === activeTabId);
+
+  // 内存优化：关闭标签时释放编辑器内存
+  useEffect(() => {
+    return () => {
+      // 组件卸载时清理编辑器
+      if (editorRef.current) {
+        editorRef.current.dispose();
+        editorRef.current = null;
+      }
+    };
+  }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Monaco Editor 类型未完全导出
   const handleEditorDidMount = (editor: any) => {
@@ -120,6 +131,17 @@ export function CodeEditor() {
             wordWrap: 'on',
             formatOnPaste: true,
             formatOnType: true,
+            // 内存优化选项
+            largeFileOptimizations: true, // 启用大文件优化
+            readOnly: false,
+            renderValidationDecorations: 'on',
+            // 性能优化
+            renderLineHighlight: 'all',
+            occurrencesHighlight: true,
+            codeLens: false, // 禁用代码透镜以提升性能
+            // 滚动性能优化
+            smoothScrolling: true,
+            cursorSmoothCaretAnimation: 'on',
           }}
         />
       </div>

@@ -79,6 +79,10 @@ export interface CLIStoreState {
   clearMessages: () => void;
   disconnect: () => Promise<void>;
 
+  // 会话持久化
+  saveSession: () => void;
+  restoreSession: (sessionId: string) => boolean;
+
   // 内部方法
   addMessage: (message: CLIMessage) => void;
   updateCurrentMessage: (content: string) => void;
@@ -93,23 +97,28 @@ export interface CLIStoreState {
  */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 /* eslint-disable */
-export const useCLIStore = create<CLIStoreState>((set, get) => ({
-  // 初始状态
-  sessionId: null,
-  isConnected: false,
-  isProcessing: false,
-  mode: 'stream',
-  messages: [],
-  currentMessage: '',
-  currentTool: null,
-  activeTools: new Map<string, ToolCall>(),
-  stats: {
-    totalMessages: 0,
-    totalTokens: 0,
-    totalCost: 0,
-    duration: 0,
-    toolCalls: []
-  },
+export const useCLIStore = create<CLIStoreState>((set, get) => {
+  // 防抖定时器
+  let saveTimer: NodeJS.Timeout | null = null;
+  const SAVE_DEBOUNCE_MS = 1000; // 1秒防抖
+
+  return {
+    // 初始状态
+    sessionId: null,
+    isConnected: false,
+    isProcessing: false,
+    mode: 'stream',
+    messages: [],
+    currentMessage: '',
+    currentTool: null,
+    activeTools: new Map<string, ToolCall>(),
+    stats: {
+      totalMessages: 0,
+      totalTokens: 0,
+      totalCost: 0,
+      duration: 0,
+      toolCalls: []
+    },
 
   /**
    * 初始化 CLI 连接
@@ -236,6 +245,9 @@ export const useCLIStore = create<CLIStoreState>((set, get) => ({
       }
     });
 
+    // 自动保存会话
+    get().saveSession();
+
     // 发送到 CLI（通过 Worker）
     // 这里需要保存 Worker 实例，暂时简化处理
     console.log('[CLI Store] 发送消息:', content.substring(0, 50));
@@ -285,10 +297,30 @@ export const useCLIStore = create<CLIStoreState>((set, get) => ({
   },
 
   /**
-   * 添加消息
+   * 添加消息（带防抖的自动保存）
    */
   addMessage: (message: CLIMessage) => {
-    set({ messages: [...get().messages, message] });
+    const currentMessages = get().messages;
+    const MAX_MESSAGES = 100;
+
+    // 如果消息超过限制，删除最旧的消息
+    let updatedMessages = [...currentMessages, message];
+    if (updatedMessages.length > MAX_MESSAGES) {
+      updatedMessages = updatedMessages.slice(-MAX_MESSAGES);
+      console.warn(`[CLI Store] 消息数量超过限制，已删除 ${updatedMessages.length - MAX_MESSAGES} 条旧消息`);
+    }
+
+    set({ messages: updatedMessages });
+
+    // 防抖：1秒内只保存一次
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+    }
+
+    saveTimer = setTimeout(() => {
+      get().saveSession();
+      saveTimer = null;
+    }, SAVE_DEBOUNCE_MS);
   },
 
   /**
@@ -366,5 +398,65 @@ export const useCLIStore = create<CLIStoreState>((set, get) => ({
         toolCalls: []
       }
     });
+  },
+
+  /**
+   * 保存会话到 localStorage
+   */
+  saveSession: () => {
+    const { sessionId, messages, stats, mode } = get();
+
+    if (!sessionId) return;
+
+    try {
+      const sessionData = {
+        sessionId,
+        messages: messages.slice(-100), // 只保存最近100条
+        stats,
+        mode,
+        timestamp: Date.now()
+      };
+
+      localStorage.setItem(`cli_session_${sessionId}`, JSON.stringify(sessionData));
+      console.log('[CLI Store] 会话已保存:', sessionId);
+    } catch (error) {
+      console.error('[CLI Store] 保存会话失败:', error);
+    }
+  },
+
+  /**
+   * 从 localStorage 恢复会话
+   */
+  restoreSession: (sessionId: string) => {
+    try {
+      const sessionDataStr = localStorage.getItem(`cli_session_${sessionId}`);
+
+      if (!sessionDataStr) {
+        console.log('[CLI Store] 未找到会话数据:', sessionId);
+        return false;
+      }
+
+      const sessionData = JSON.parse(sessionDataStr);
+
+      // 恢复消息和统计
+      set({
+        sessionId,
+        messages: sessionData.messages || [],
+        stats: sessionData.stats || {
+          totalMessages: 0,
+          totalTokens: 0,
+          totalCost: 0,
+          duration: 0,
+          toolCalls: []
+        },
+        mode: sessionData.mode || 'stream'
+      });
+
+      console.log('[CLI Store] 会话已恢复:', sessionId, '消息数:', sessionData.messages?.length || 0);
+      return true;
+    } catch (error) {
+      console.error('[CLI Store] 恢复会话失败:', error);
+      return false;
+    }
   }
 }));

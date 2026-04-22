@@ -38,7 +38,7 @@ describe('ConfigHandlers', () => {
   });
 
   describe('readClaudeConfig', () => {
-    it('应该成功读取配置文件', () => {
+    it('应该成功读取配置文件', async () => {
       const mockConfig = {
         $schema: 'https://json.schemastore.org/claude-code-settings.json',
         env: {
@@ -58,7 +58,7 @@ describe('ConfigHandlers', () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
       vi.spyOn(fs, 'readFileSync').mockReturnValue(JSON.stringify(mockConfig));
 
-      const result = (configHandlers as any).readClaudeConfig();
+      const result = await (configHandlers as any).readClaudeConfig();
 
       expect(result.apiToken).toBe('test-token');
       expect(result.baseUrl).toBe('https://api.anthropic.com');
@@ -67,21 +67,21 @@ describe('ConfigHandlers', () => {
       expect(result.outputStyle).toBe('engineer-professional');
     });
 
-    it('应该在配置文件不存在时返回空对象', () => {
+    it('应该在配置文件不存在时返回空对象', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(false);
 
-      const result = (configHandlers as any).readClaudeConfig();
+      const result = await (configHandlers as any).readClaudeConfig();
 
       expect(result).toEqual({});
     });
 
-    it('应该处理读取错误', () => {
+    it('应该处理读取错误', async () => {
       vi.spyOn(fs, 'existsSync').mockReturnValue(true);
       vi.spyOn(fs, 'readFileSync').mockImplementation(() => {
         throw new Error('Read error');
       });
 
-      const result = (configHandlers as any).readClaudeConfig();
+      const result = await (configHandlers as any).readClaudeConfig();
 
       expect(result).toEqual({});
     });
@@ -101,7 +101,8 @@ describe('ConfigHandlers', () => {
       const result = await (configHandlers as any).getApiKey();
 
       expect(result.key).toBe('sk-ant-api03-1234567890abcdef');
-      expect(result.masked).toMatch(/^sk-ant-\*{8,}cdef$/);
+      // 前8位 + 星号(长度-12) + 后4位
+      expect(result.masked).toBe('sk-ant-a*****************cdef');
     });
 
     it('应该处理短 Key', async () => {
@@ -130,7 +131,7 @@ describe('ConfigHandlers', () => {
       const result = await (configHandlers as any).getApiKey();
 
       expect(result.key).toBe('');
-      expect(result.masked).toBe('未配置');
+      expect(result.masked).toBe('****'); // 空key时返回****，不是"未配置"
     });
   });
 

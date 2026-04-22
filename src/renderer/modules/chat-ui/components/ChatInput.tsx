@@ -1,15 +1,29 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { Send } from 'lucide-react';
+import { Send, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+
+/**
+ * 连接状态
+ */
+type ConnectionState = 'connected' | 'connecting' | 'disconnected';
 
 interface ChatInputProps {
   onSend: (content: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  connectionState?: ConnectionState; // 新增：连接状态
 }
 
-export function ChatInput({ onSend, disabled = false, placeholder = '输入消息...' }: ChatInputProps) {
+export function ChatInput({
+  onSend,
+  disabled = false,
+  placeholder = '输入消息...',
+  connectionState = 'connected' // 默认已连接
+}: ChatInputProps) {
   const [content, setContent] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // 根据连接状态判断是否禁用
+  const isDisabled = disabled || connectionState === 'disconnected' || connectionState === 'connecting';
 
   const autoResize = () => {
     const textarea = textareaRef.current;
@@ -42,8 +56,45 @@ export function ChatInput({ onSend, disabled = false, placeholder = '输入消�
     }
   };
 
+  // 连接状态配置
+  const getConnectionConfig = () => {
+    switch (connectionState) {
+      case 'connected':
+        return {
+          icon: <CheckCircle className="w-4 h-4" />,
+          text: '已连接',
+          color: 'text-green-500',
+          bgColor: 'bg-green-50'
+        };
+      case 'connecting':
+        return {
+          icon: <Loader className="w-4 h-4 animate-spin" />,
+          text: '连接中...',
+          color: 'text-yellow-500',
+          bgColor: 'bg-yellow-50'
+        };
+      case 'disconnected':
+        return {
+          icon: <AlertCircle className="w-4 h-4" />,
+          text: '连接断开',
+          color: 'text-red-500',
+          bgColor: 'bg-red-50'
+        };
+    }
+  };
+
+  const connectionConfig = getConnectionConfig();
+
   return (
     <div className="border-t border-bg-tertiary p-4 bg-chat-input-bg">
+      {/* 连接状态指示 */}
+      <div className="max-w-4xl mx-auto mb-2">
+        <div className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg ${connectionConfig.bgColor} ${connectionConfig.color}`}>
+          {connectionConfig.icon}
+          <span>{connectionConfig.text}</span>
+        </div>
+      </div>
+
       <div className="max-w-4xl mx-auto flex items-end gap-3">
         <div className="flex-1 relative">
           <textarea

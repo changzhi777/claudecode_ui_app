@@ -6,26 +6,14 @@
  * 桥接 Worker 和主进程 IPC 通信
  */
 
-export type CommunicationMode = 'stream' | 'single';
+import type {
+  CommunicationMode,
+  StreamData,
+  WorkerResponse,
+  WorkerConfig,
+} from '@shared/types/worker';
 
-export interface StreamData {
-  type: string;
-  subtype?: string;
-  content?: string;
-  sessionId: string;
-  timestamp: number;
-  [key: string]: unknown;
-}
-
-interface WorkerResponse {
-  type: 'INITIALIZED' | 'STREAM_DATA' | 'SINGLE_RESPONSE' | 'MODE_SWITCHED' | 'DISPOSED' | 'SEND_MESSAGE' | 'ERROR'
-  payload?: unknown
-}
-
-interface WorkerConfig {
-  sessionId: string
-  defaultMode?: CommunicationMode
-}
+export type { CommunicationMode, StreamData };
 
 /**
  * Worker 管理器
@@ -38,6 +26,12 @@ export class WorkerManager {
   private responseCallback?: (data: StreamData) => void;
   private errorCallback?: (error: Error) => void;
   private isInitialized = false;
+
+  // 消息重发机制
+  private retryQueue: Array<{ content: string; retries: number; timestamp: number }> = [];
+  private maxRetries = 3;
+  private isConnected = true;
+  private readonly MAX_RETRY_QUEUE_SIZE = 50; // 最大重试队列大小
 
   constructor(config: WorkerConfig) {
     this.sessionId = config.sessionId;
@@ -180,10 +174,88 @@ export class WorkerManager {
       throw new Error('Worker 未初始化');
     }
 
-    this.postMessage({
-      type: 'SEND_MESSAGE',
-      payload: { content }
-    });
+    if (!this.isConnected) {
+      // 连接断开，加入重试队列
+      if (this.retryQueue.length >= this.MAX_RETRY_QUEUE_SIZE) {
+        console.warn('[WorkerManager] 重试队列已满，丢弃最旧的消息');
+        this.retryQueue.shift(); // 移除最旧的消息
+      }
+
+      this.retryQueue.push({
+        content,
+        retries: 0,
+        timestamp: Date.now()
+      });
+      console.warn('[WorkerManager] 连接断开，消息已加入重试队列');
+      return;
+    }
+
+    try {
+      this.postMessage({
+        type: 'SEND_MESSAGE',
+        payload: { content }
+      });
+    } catch (error) {
+      // 发送失败，加入重试队列
+      if (this.retryQueue.length >= this.MAX_RETRY_QUEUE_SIZE) {
+        console.warn('[WorkerManager] 重试队列已满，丢弃最旧的消息');
+        this.retryQueue.shift();
+      }
+
+      this.retryQueue.push({
+        content,
+        retries: 0,
+        timestamp: Date.now()
+      });
+      console.error('[WorkerManager] 发送失败，已加入重试队列:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 处理重试队列
+   */
+  private processRetryQueue(): void {
+    if (this.retryQueue.length === 0) return;
+
+    console.log(`[WorkerManager] 处理重试队列，待重发消息: ${this.retryQueue.length}`);
+
+    const failedMessages: typeof this.retryQueue = [];
+
+    for (const item of this.retryQueue) {
+      if (item.retries >= this.maxRetries) {
+        console.error('[WorkerManager] 消息重试次数已达上限:', item.content.substring(0, 50));
+        continue;
+      }
+
+      try {
+        this.postMessage({
+          type: 'SEND_MESSAGE',
+          payload: { content: item.content }
+        });
+
+        console.log(`[WorkerManager] 消息重发成功 (${item.retries + 1}/${this.maxRetries})`);
+      } catch (error) {
+        item.retries++;
+        failedMessages.push(item);
+        console.error('[WorkerManager] 消息重发失败:', error);
+      }
+    }
+
+    this.retryQueue = failedMessages;
+  }
+
+  /**
+   * 标记连接状态
+   */
+  setConnectedState(connected: boolean): void {
+    const wasDisconnected = !this.isConnected;
+    this.isConnected = connected;
+
+    if (wasDisconnected && connected) {
+      // 从断开恢复，处理重试队列
+      this.processRetryQueue();
+    }
   }
 
   /**

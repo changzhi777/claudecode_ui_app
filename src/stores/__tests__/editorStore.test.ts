@@ -8,11 +8,14 @@ import { useEditorStore } from '../editorStore';
 
 describe('useEditorStore', () => {
   beforeEach(() => {
-    // 重置 store 状态
-    const { setFileTree, tabs, activeTabId } = useEditorStore.getState();
-    setFileTree([]);
-    // 注意：Zustand persist 中间件会在测试中保留状态
-    // 在真实测试中可能需要清除 localStorage
+    // 完全重置 store 状态
+    useEditorStore.getState().setFileTree([]);
+    useEditorStore.setState({
+      tabs: [],
+      activeTabId: null,
+      expandedPaths: new Set(),
+      selectedPath: null,
+    });
   });
 
   describe('文件树操作', () => {
