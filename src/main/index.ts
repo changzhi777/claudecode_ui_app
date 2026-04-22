@@ -1,5 +1,6 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, protocol } from 'electron';
 import * as path from 'path';
+import * as fs from 'fs';
 import { IPCServer } from '../ipc-bridge/ipcServer';
 import { CLIPCHandlers } from './ipc/cli-handlers';
 import { ConfigHandlers } from './ipc/config-handlers';
@@ -20,10 +21,12 @@ function createWindow() {
     minHeight: 600,
     backgroundColor: '#f5f4ed',
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
+      preload: path.join(__dirname, '../preload/index.mjs'),
+      nodeIntegrationInWorker: true, // 启用 Worker 中的 nodeIntegration
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true,
+      sandbox: false,
+      webSecurity: false, // 临时禁用以解决 file:// 协议问题
     },
     titleBarStyle: 'hiddenInset',
     show: false,
@@ -31,15 +34,23 @@ function createWindow() {
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173').then(() => {
-      // 延迟打开 DevTools，避免影响启动性能
       setTimeout(() => {
         mainWindow?.webContents.openDevTools();
       }, 1500);
     });
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
-    // 生产环境也打开 DevTools 进行调试
     mainWindow.webContents.openDevTools();
+
+    // 监听渲染进程加载失败
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+      console.error('页面加载失败:', errorCode, errorDescription);
+    });
+
+    // 监听 Console 消息
+    mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+      console.log(`[Renderer Console] ${message}`);
+    });
   }
 
   mainWindow.once('ready-to-show', () => {
