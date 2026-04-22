@@ -4,6 +4,60 @@ import { CLIProcessPool, PoolConfig } from '../cli/ProcessPool';
 import { IPCLogger } from '../utils/IPCLogger';
 
 /**
+ * 执行 ClaudeCode CLI 命令的辅助函数
+ */
+async function executeClaudeCLI(prompt: string): Promise<{
+  text: string;
+  duration: number;
+}> {
+  return new Promise((resolve, reject) => {
+    const startTime = Date.now();
+    const claudePath = '/Users/mac/.npm-global/bin/claude';
+
+    const claudeProcess = spawn(claudePath, ['-p', prompt], {
+      env: {
+        ...process.env,
+        PATH: process.env.PATH,
+        HOME: process.env.HOME,
+      },
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    claudeProcess.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    claudeProcess.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    claudeProcess.on('close', (code) => {
+      const duration = Date.now() - startTime;
+
+      if (code === 0) {
+        resolve({
+          text: stdout.trim(),
+          duration,
+        });
+      } else {
+        reject(new Error(`CLI 执行失败 (code ${code}): ${stderr || stdout}`));
+      }
+    });
+
+    claudeProcess.on('error', (error) => {
+      reject(new Error(`CLI 进程错误: ${error.message}`));
+    });
+
+    setTimeout(() => {
+      claudeProcess.kill();
+      reject(new Error('CLI 执行超时'));
+    }, 120000);
+  });
+}
+
+/**
  * IPC 服务器
  *
  * 处理渲染进程的 CLI 相关请求
@@ -85,15 +139,15 @@ export class CLIPCHandlers {
         this.logger.info('CLIPCHandlers', `发送消息到 CLI: ${content.substring(0, 50)}...`);
 
         // 直接调用 ClaudeCode CLI
-        const response = await this.executeClaudeCLI(content);
+        const response = await executeClaudeCLI(content);
 
         return {
           success: true,
           data: {
             response: response.text,
             model: 'claude-3.5-sonnet',
-            tokens: response.tokens || 0,
-            duration: response.duration || 0,
+            tokens: 0, // CLI 暂时不提供 token 信息
+            duration: response.duration,
             timestamp: Date.now()
           }
         };

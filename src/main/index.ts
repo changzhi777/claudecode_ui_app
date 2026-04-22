@@ -7,6 +7,8 @@ import { ConfigHandlers } from './ipc/config-handlers';
 import { registerFileHandlers } from './ipc/file-handlers';
 import { initPerformanceHandlers } from './ipc/performance-handlers';
 import { initRealCLIHandlers } from './ipc/real-cli-handlers';
+import { initChatHandlers } from './ipc/chat-handlers';
+import { registerGlobalShortcuts, unregisterAllShortcuts } from './shortcuts';
 
 let mainWindow: BrowserWindow | null = null;
 let cliHandlersInstance: CLIPCHandlers | undefined;
@@ -90,6 +92,12 @@ app.whenReady().then(() => {
 
   // 注册真实 CLI handlers
   initRealCLIHandlers();
+
+  // 注册对话管理 handlers
+  initChatHandlers();
+
+  // 注册全局快捷键
+  registerGlobalShortcuts(() => mainWindow);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
