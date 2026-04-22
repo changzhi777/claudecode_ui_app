@@ -6,6 +6,7 @@ import { CLIPCHandlers } from './ipc/cli-handlers';
 import { ConfigHandlers } from './ipc/config-handlers';
 import { registerFileHandlers } from './ipc/file-handlers';
 import { initPerformanceHandlers } from './ipc/performance-handlers';
+import { initRealCLIHandlers } from './ipc/real-cli-handlers';
 
 let mainWindow: BrowserWindow | null = null;
 let cliHandlersInstance: CLIPCHandlers | undefined;
@@ -86,6 +87,9 @@ app.whenReady().then(() => {
 
   // 注册性能监控 IPC handlers（轻量级，立即初始化）
   initPerformanceHandlers();
+
+  // 注册真实 CLI handlers
+  initRealCLIHandlers();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

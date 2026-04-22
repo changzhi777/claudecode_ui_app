@@ -1,4 +1,5 @@
 import { ipcMain, BrowserWindow } from 'electron';
+import { spawn } from 'child_process';
 import { CLIProcessPool, PoolConfig } from '../cli/ProcessPool';
 import { IPCLogger } from '../utils/IPCLogger';
 
@@ -10,6 +11,7 @@ import { IPCLogger } from '../utils/IPCLogger';
 export class CLIPCHandlers {
   private pool?: CLIProcessPool;
   private logger = IPCLogger.getInstance();
+  private claudePath = '/Users/mac/.npm-global/bin/claude'; // ClaudeCode CLI 路径
 
   constructor() {
     this.registerHandlers();
@@ -77,8 +79,42 @@ export class CLIPCHandlers {
       }
     });
 
-    // 发送消息
-    ipcMain.on('cli:sendMessage', async (_event, sessionId: string, content: string) => {
+    // 发送消息（真实CLI集成）
+    ipcMain.handle('cli:sendMessage', async (event, content: string) => {
+      try {
+        this.logger.info('CLIPCHandlers', `发送消息到 CLI: ${content.substring(0, 50)}...`);
+
+        // 直接调用 ClaudeCode CLI
+        const response = await this.executeClaudeCLI(content);
+
+        return {
+          success: true,
+          data: {
+            response: response.text,
+            model: 'claude-3.5-sonnet',
+            tokens: response.tokens || 0,
+            duration: response.duration || 0,
+            timestamp: Date.now()
+          }
+        };
+      } catch (error) {
+        this.logger.error('CLIPCHandlers', `CLI 执行失败: ${error}`);
+        return {
+          success: false,
+          error: (error as Error).message,
+          data: {
+            response: `错误: ${(error as Error).message}`,
+            model: 'claude-3.5-sonnet',
+            tokens: 0,
+            duration: 0,
+            timestamp: Date.now()
+          }
+        };
+      }
+    });
+
+    // 发送消息（进程池版本，保留用于向后兼容）
+    ipcMain.on('cli:sendMessagePool', async (_event, sessionId: string, content: string) => {
       try {
         if (!this.pool) {
           throw new Error('进程池未初始化');

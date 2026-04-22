@@ -26,20 +26,55 @@ export function ChatUI() {
     // 设置加载状态
     setLoading(true);
 
-    // TODO: 这里将来会通过 IPC 调用 ClaudeCode CLI
-    // 现在先模拟 AI 响应
-    setTimeout(() => {
-      addMessage({
-        role: 'assistant',
-        content: `我收到了你的消息："${content}"\n\n这是一个模拟响应。将来这里会连接到真正的 ClaudeCode CLI，让你能够与 Claude AI 进行真实的对话。\n\n你可以切换主题来体验不同的界面风格！`,
-        metadata: {
-          model: 'claude-3.5-sonnet',
-          tokens: 42,
-          thinkingTime: 1234,
-        },
-      });
+    try {
+      // 通过 IPC 调用真实的 ClaudeCode CLI
+      if (window.electronAPI) {
+        const response = await window.electronAPI.invoke('cli:sendMessageReal', content);
+
+        if (response.success) {
+          // 添加 AI 响应
+          addMessage({
+            role: 'assistant',
+            content: response.data.response,
+            metadata: {
+              model: response.data.model,
+              tokens: response.data.tokens,
+              thinkingTime: response.data.duration,
+            },
+          });
+        } else {
+          // 处理错误
+          addMessage({
+            role: 'assistant',
+            content: `抱歉，遇到了一些问题：${response.error}`,
+            metadata: {
+              model: 'claude-3.5-sonnet',
+              tokens: 0,
+              thinkingTime: 0,
+            },
+          });
+        }
+      } else {
+        throw new Error('electronAPI 不可用');
+      }
+    } catch (error) {
+      // 降级到模拟响应
+      console.error('CLI 调用失败，使用模拟响应:', error);
+
+      setTimeout(() => {
+        addMessage({
+          role: 'assistant',
+          content: `我收到了你的消息："${content}"\n\n[模拟响应 - CLI 集成中]\n\n错误信息: ${(error as Error).message}`,
+          metadata: {
+            model: 'claude-3.5-sonnet',
+            tokens: 42,
+            thinkingTime: 1000,
+          },
+        });
+      }, 500);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
