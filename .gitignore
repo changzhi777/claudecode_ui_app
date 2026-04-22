@@ -38,3 +38,17 @@ lerna-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Test coverage
+coverage/
+
+# Test files
+test-app.sh
+test.html
+tests/
+
+# Plan history
+.zcf/plan/history/
+
+# Performance panel (WIP)
+src/renderer/modules/performance-panel/
