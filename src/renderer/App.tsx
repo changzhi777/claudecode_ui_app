@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { ThemeProvider } from './components/ThemeProvider';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { ViewSwitcher } from './components/ViewSwitcher';
@@ -6,6 +6,7 @@ import { Loading } from './components/Loading';
 import { useThemeStore } from '@stores';
 import { useThemeShortcut } from './hooks/useThemeShortcut';
 import { useViewShortcut } from './hooks/useViewShortcut';
+import { preloadCommands } from './hooks/useCommandsCache';
 import { ChatUI } from './modules/chat-ui/ChatUI';
 import { TaskVizContainer } from './modules/task-viz/TaskVizContainer';
 import { useViewStore } from '@stores';
@@ -20,6 +21,11 @@ function AppContent() {
   const { currentView } = useViewStore();
   useThemeShortcut(); // 启用快捷键
   useViewShortcut(); // 启用视图切换快捷键
+
+  // 预加载命令列表，优化 "/" 触发时的加载速度
+  useEffect(() => {
+    preloadCommands();
+  }, []);
 
   return (
     <div className="app h-screen flex flex-col">

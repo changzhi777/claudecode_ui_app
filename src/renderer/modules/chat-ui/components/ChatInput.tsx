@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { Send, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import { CommandAutocomplete } from './CommandAutocomplete';
+import { useCommandsCache } from '../../../hooks/useCommandsCache';
 
 /**
  * 连接状态
@@ -24,6 +25,9 @@ export function ChatInput({
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [autocompleteQuery, setAutocompleteQuery] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // 预加载命令列表（使用缓存）
+  const { commands: cachedCommands } = useCommandsCache();
 
   // 根据连接状态判断是否禁用
   const isDisabled = disabled || connectionState === 'disconnected' || connectionState === 'connecting';
@@ -154,6 +158,7 @@ export function ChatInput({
           {showAutocomplete && (
             <CommandAutocomplete
               query={autocompleteQuery}
+              commands={cachedCommands}
               onSelect={handleSelectCommand}
               onClose={() => {
                 setShowAutocomplete(false);

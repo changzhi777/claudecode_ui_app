@@ -45,33 +45,14 @@ const CATEGORY_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg
 
 interface CommandAutocompleteProps {
   query: string;
+  commands: CommandItem[];
   onSelect: (command: string) => void;
   onClose: () => void;
 }
 
-export function CommandAutocomplete({ query, onSelect, onClose }: CommandAutocompleteProps) {
-  const [commands, setCommands] = useState<CommandItem[]>([]);
+export function CommandAutocomplete({ query, commands, onSelect, onClose }: CommandAutocompleteProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // 加载真实命令列表
-  useEffect(() => {
-    const loadCommands = async () => {
-      try {
-        const response = await window.electronAPI.invoke('cli:getCommands');
-        if (response.success) {
-          setCommands(response.commands);
-        }
-      } catch (error) {
-        console.error('加载命令失败:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCommands();
-  }, []);
 
   // 过滤匹配的命令
   const filteredCommands = commands.filter(cmd =>
@@ -121,17 +102,6 @@ export function CommandAutocomplete({ query, onSelect, onClose }: CommandAutocom
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
-
-  if (loading) {
-    return (
-      <div className="absolute bottom-full left-0 right-0 mb-2 bg-bg-elevated border border-bg-tertiary rounded-lg shadow-lg p-4 z-50">
-        <div className="flex items-center justify-center text-text-secondary">
-          <div className="animate-spin mr-2">⏳</div>
-          加载命令中...
-        </div>
-      </div>
-    );
-  }
 
   if (filteredCommands.length === 0) {
     return null;
