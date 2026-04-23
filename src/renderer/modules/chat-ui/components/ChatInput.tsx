@@ -143,10 +143,10 @@ export function ChatInput({
   const connectionConfig = getConnectionConfig();
 
   return (
-    <div className="border-t border-bg-tertiary p-4 bg-chat-input-bg">
+    <div className="border-t border-bg-tertiary/50 p-4 bg-chat-input-bg/60 backdrop-blur-md">
       {/* 连接状态指示 */}
       <div className="max-w-4xl mx-auto mb-2">
-        <div className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg ${connectionConfig.bgColor} ${connectionConfig.color}`}>
+        <div className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg backdrop-blur-sm border border-white/10 ${connectionConfig.bgColor} ${connectionConfig.color}`}>
           {connectionConfig.icon}
           <span>{connectionConfig.text}</span>
         </div>
@@ -174,11 +174,11 @@ export function ChatInput({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
-            className="w-full px-4 py-3 bg-bg-elevated border border-bg-tertiary rounded-xl resize-none focus:outline-none focus:border-color-accent transition-colors"
+            className="w-full px-4 py-3 bg-bg-elevated/80 backdrop-blur-md border border-bg-tertiary/50 rounded-xl resize-none focus:outline-none focus:border-color-accent/50 focus:bg-bg-elevated transition-all duration-200 shadow-lg"
             style={{ minHeight: '48px', maxHeight: '200px' }}
             rows={1}
           />
-          <div className="absolute bottom-3 right-3 text-xs text-text-tertiary">
+          <div className="absolute bottom-3 right-3 text-xs text-text-tertiary/80">
             {disabled ? '发送中...' : 'Enter 发送，Shift+Enter 换行'}
           </div>
         </div>
@@ -186,7 +186,7 @@ export function ChatInput({
         <button
           onClick={handleSend}
           disabled={disabled || !content.trim()}
-          className="px-4 py-3 bg-color-primary text-white rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center"
+          className="px-4 py-3 bg-color-primary text-white rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
           style={{ minHeight: '48px' }}
         >
           <Send size={20} />

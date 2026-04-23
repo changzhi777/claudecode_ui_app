@@ -110,7 +110,7 @@ export function CommandAutocomplete({ query, commands, onSelect, onClose }: Comm
   return (
     <div
       ref={containerRef}
-      className="absolute bottom-full left-0 right-0 mb-2 bg-bg-elevated border border-bg-tertiary rounded-lg shadow-lg overflow-hidden z-50 max-h-80 overflow-y-auto"
+      className="absolute bottom-full left-0 right-0 mb-2 glass-dropdown rounded-lg overflow-hidden z-50 max-h-80 backdrop-blur-xl"
     >
       {Object.entries(groupedCommands).map(([category, commands]) => {
         const config = CATEGORY_CONFIG[category];
@@ -159,7 +159,7 @@ export function CommandAutocomplete({ query, commands, onSelect, onClose }: Comm
       })}
 
       {/* 底部帮助提示 */}
-      <div className="px-3 py-1 bg-bg-secondary border-t border-bg-tertiary text-xs text-text-secondary sticky bottom-0">
+      <div className="px-3 py-1 bg-bg-secondary/60 backdrop-blur-md border-t border-bg-tertiary/30 text-xs text-text-secondary sticky bottom-0">
         <div className="flex items-center justify-between">
           <span>💡 使用 ↑↓ 选择 · Enter 确认 · Tab 补全</span>
           <span className="text-text-tertiary">Esc 关闭</span>

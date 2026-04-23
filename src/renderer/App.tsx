@@ -28,13 +28,13 @@ function AppContent() {
   }, []);
 
   return (
-    <div className="app h-screen flex flex-col">
-      <header className="flex items-center justify-between px-6 py-4 border-b border-bg-tertiary bg-bg-secondary">
+    <div className="app h-screen flex flex-col bg-bg-primary">
+      <header className="flex items-center justify-between px-6 py-4 border-b border-bg-tertiary/50 glass-light sticky top-0 z-50 transition-all duration-300">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-display font-medium text-text-primary">
             ClaudeCode UI
           </h1>
-          <span className="text-xs text-text-tertiary px-2 py-1 rounded bg-bg-tertiary">
+          <span className="text-xs text-text-tertiary px-2 py-1 rounded-full bg-bg-tertiary/50 backdrop-blur-sm border border-bg-tertiary/30">
             v0.2.0
           </span>
         </div>

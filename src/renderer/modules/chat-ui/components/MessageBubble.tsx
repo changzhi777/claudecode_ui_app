@@ -23,8 +23,8 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
   if (isSystem) {
     return (
-      <div className="flex justify-center my-4">
-        <div className="px-4 py-2 bg-bg-tertiary rounded-lg text-sm text-text-tertiary">
+      <div className="flex justify-center my-4 animate-fade-in">
+        <div className="px-4 py-2 bg-bg-tertiary/60 backdrop-blur-sm rounded-lg text-sm text-text-tertiary border border-bg-tertiary/30">
           {message.content}
         </div>
       </div>
@@ -32,19 +32,19 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   }
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 group`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 group animate-fade-in`}>
       <div
-        className={`max-w-[80%] rounded-2xl px-4 py-3 relative ${
+        className={`max-w-[80%] rounded-2xl px-4 py-3 relative backdrop-blur-sm transition-all duration-200 hover:shadow-lg ${
           isUser
-            ? 'bg-chat-user-bubble text-white'
-            : 'bg-chat-ai-bubble text-text-primary'
+            ? 'bg-chat-user-bubble text-white shadow-md'
+            : 'bg-chat-ai-bubble/80 text-text-primary shadow-sm border border-white/5'
         }`}
       >
         {/* 复制按钮 */}
         {!isUser && (
           <button
             onClick={handleCopy}
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg bg-black/10 hover:bg-black/20"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-lg bg-black/10 hover:bg-black/20 backdrop-blur-sm"
             title={copied ? '已复制' : '复制'}
           >
             {copied ? <Check size={14} /> : <Copy size={14} />}

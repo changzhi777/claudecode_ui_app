@@ -1,3 +1,6 @@
+/* 引入毛玻璃效果 */
+@import './styles/glass.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
