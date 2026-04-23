@@ -1,6 +1,6 @@
 import type { Theme } from '../types/theme';
 
-export const themes: Record<'claude' | 'cursor' | 'warp', Theme> = {
+export const themes: Record<'claude' | 'cursor' | 'warp' | 'professional', Theme> = {
   claude: {
     id: 'claude',
     name: 'Claude',
@@ -262,6 +262,94 @@ export const themes: Record<'claude' | 'cursor' | 'warp', Theme> = {
       lg: '12px',
       xl: '50px',
       full: '50px',
+    },
+  },
+
+  professional: {
+    id: 'professional',
+    name: 'Professional',
+    description: '专业深色，高效开发工作流',
+    designer: 'ClaudeCode UI',
+    colors: {
+      primary: '#3B82F6',        // 蓝色 - 主色
+      secondary: '#1F2937',      // 深灰 - 次要色
+      accent: '#10B981',         // 绿色 - 强调色
+      bg: {
+        primary: '#0A0E17',      // 深黑 - 主背景
+        secondary: '#111827',    // 次级背景
+        tertiary: '#1F2937',     // 三级背景/边框
+        elevated: '#1F2937',     // 悬浮元素
+      },
+      text: {
+        primary: '#F9FAFB',      // 主要文本
+        secondary: '#D1D5DB',    // 次要文本
+        tertiary: '#9CA3AF',     // 三级文本
+        inverse: '#0A0E17',      // 反色文本
+      },
+      semantic: {
+        error: '#EF4444',        // 错误 - 红色
+        success: '#10B981',      // 成功 - 绿色
+        warning: '#F59E0B',      // 警告 - 黄色
+        info: '#3B82F6',         // 信息 - 蓝色
+      },
+      components: {
+        chat: {
+          userBubble: '#3B82F6',     // 用户消息 - 蓝色
+          aiBubble: '#1F2937',        // AI 消息 - 深灰
+          inputBg: '#1F2937',         // 输入框背景
+        },
+        editor: {
+          bg: '#0A0E17',              // 编辑器背景
+          gutter: '#111827',          // 行号栏
+          lineHighlight: '#1F2937',   // 当前行高亮
+        },
+        fileTree: {
+          bg: '#0A0E17',              // 文件树背景
+          selectedItem: '#1F2937',    // 选中项
+          hover: '#111827',           // 悬停状态
+        },
+      },
+    },
+    typography: {
+      families: {
+        display: 'Inter, -apple-system, system-ui, sans-serif',
+        ui: 'Inter, -apple-system, system-ui, sans-serif',
+        body: 'Inter, -apple-system, system-ui, sans-serif',
+        code: 'JetBrains Mono, ui-monospace, SFMono-Regular, monospace',
+      },
+      sizes: {
+        xs: '0.75rem',
+        sm: '0.875rem',
+        md: '1rem',
+        lg: '1.125rem',
+        xl: '1.25rem',
+        '2xl': '1.5rem',
+        '3xl': '2rem',
+      },
+      weights: {
+        normal: 400,
+        medium: 500,
+        semibold: 600,
+        bold: 700,
+      },
+    },
+    spacing: {
+      unit: 4,
+      scale: [4, 8, 12, 16, 20, 24, 32, 48, 64],
+    },
+    shadows: {
+      sm: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
+      md: '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
+      lg: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)',
+      xl: '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3)',
+      focus: '0 0 0 3px rgba(59, 130, 246, 0.3)',
+    },
+    borderRadius: {
+      sm: '4px',
+      md: '6px',
+      lg: '8px',
+      xl: '12px',
+      full: '9999px',
     },
   },
 };

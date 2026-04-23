@@ -13,8 +13,8 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      currentTheme: 'claude',
-      theme: themes.claude,
+      currentTheme: 'professional',
+      theme: themes.professional,
 
       setTheme: (themeId: ThemeID) => {
         set({
@@ -25,7 +25,7 @@ export const useThemeStore = create<ThemeState>()(
 
       toggleTheme: () => {
         const { currentTheme } = get();
-        const themeIds: ThemeID[] = ['claude', 'cursor', 'warp'];
+        const themeIds: ThemeID[] = ['professional', 'claude', 'cursor', 'warp'];
         const currentIndex = themeIds.indexOf(currentTheme);
         const nextIndex = (currentIndex + 1) % themeIds.length;
         get().setTheme(themeIds[nextIndex]);

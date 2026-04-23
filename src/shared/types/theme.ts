@@ -1,4 +1,4 @@
-export type ThemeID = 'claude' | 'cursor' | 'warp';
+export type ThemeID = 'claude' | 'cursor' | 'warp' | 'professional';
 
 export interface Theme {
   id: ThemeID;
