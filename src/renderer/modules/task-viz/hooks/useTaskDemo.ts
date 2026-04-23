@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useTaskStore } from '@stores/taskStore';
+import { useTaskStore } from '@stores';
 
 /**
  * Hook 用于演示任务可视化

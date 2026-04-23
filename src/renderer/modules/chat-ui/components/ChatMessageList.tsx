@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { MessageBubble } from './MessageBubble';
-import { useChatStore } from '@stores/chatStore';
+import { useChatStore } from '@stores';
 import { Loader2 } from 'lucide-react';
 
 export function ChatMessageList() {

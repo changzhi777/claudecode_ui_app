@@ -31,7 +31,7 @@ export default defineConfig({
         '@': path.resolve(__dirname, './src'),
         '@shared': path.resolve(__dirname, './src/shared'),
         '@renderer': path.resolve(__dirname, './src/renderer'),
-        '@stores': path.resolve(__dirname, './src/stores'),
+        '@stores': path.resolve(__dirname, './src/stores/index.ts'),
         '@components': path.resolve(__dirname, './src/renderer/components'),
       },
     },

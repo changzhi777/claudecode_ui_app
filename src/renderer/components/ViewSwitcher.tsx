@@ -1,6 +1,6 @@
-import { useViewStore } from '@stores/viewStore';
+import { useViewStore } from '@stores';
 import { MessageSquare, Code2 } from 'lucide-react';
-import type { ViewID } from '@stores/viewStore';
+import type { ViewID } from '@stores';
 
 const viewMeta: Record<
   ViewID,

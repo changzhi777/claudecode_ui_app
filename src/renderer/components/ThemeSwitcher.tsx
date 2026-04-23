@@ -1,4 +1,4 @@
-import { useThemeStore } from '@stores/themeStore';
+import { useThemeStore } from '@stores';
 import type { ThemeID } from '@shared/types/theme';
 
 const themeMeta: Record<

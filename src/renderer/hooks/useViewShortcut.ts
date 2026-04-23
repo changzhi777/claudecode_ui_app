@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useViewStore } from '@stores/viewStore';
+import { useViewStore } from '@stores';
 
 export function useViewShortcut() {
   const { toggleView } = useViewStore();

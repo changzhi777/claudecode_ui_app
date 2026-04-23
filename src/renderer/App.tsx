@@ -3,12 +3,12 @@ import { ThemeProvider } from './components/ThemeProvider';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { ViewSwitcher } from './components/ViewSwitcher';
 import { Loading } from './components/Loading';
-import { useThemeStore } from '@stores/themeStore';
+import { useThemeStore } from '@stores';
 import { useThemeShortcut } from './hooks/useThemeShortcut';
 import { useViewShortcut } from './hooks/useViewShortcut';
 import { ChatUI } from './modules/chat-ui/ChatUI';
 import { TaskVizContainer } from './modules/task-viz/TaskVizContainer';
-import { useViewStore } from '@stores/viewStore';
+import { useViewStore } from '@stores';
 
 // 仅懒加载 Workspace（包含大型 Monaco Editor）
 const Workspace = lazy(() =>

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useThemeStore } from '@stores/themeStore';
+import { useThemeStore } from '@stores';
 
 export function useThemeShortcut() {
   const { toggleTheme } = useThemeStore();

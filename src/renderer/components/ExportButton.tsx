@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { Download, FileText, FileJson } from 'lucide-react';
-import { useChatStore } from '@stores/chatStore';
+import { useChatStore } from '@stores';
 import type { ChatSession } from '@shared/types/chat';
 
 interface ExportOptions {

@@ -4,7 +4,7 @@
  */
 
 import { StoreApi } from 'zustand';
-import { useEditorStore } from '@stores/editorStore';
+import { useEditorStore } from '@stores';
 import type { ElectronAPI } from '../global.d.ts';
 
 export interface FileOperationEvent {

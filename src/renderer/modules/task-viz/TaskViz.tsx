@@ -1,4 +1,4 @@
-import { useTaskStore } from '@stores/taskStore';
+import { useTaskStore } from '@stores';
 import { TaskItem } from './components/TaskItem';
 import { ChevronDown, ChevronUp, Trash2, MinusCircle, CheckCircle2 } from 'lucide-react';
 

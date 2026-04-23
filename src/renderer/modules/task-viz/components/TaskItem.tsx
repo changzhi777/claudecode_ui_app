@@ -1,6 +1,6 @@
 import { CheckCircle2, Clock, AlertCircle, XCircle, Loader2 } from 'lucide-react';
 import type { Task } from '@shared/types/task';
-import { getTaskIcon, getTaskColor } from '@stores/taskStore';
+import { getTaskIcon, getTaskColor } from '@stores';
 
 interface TaskItemProps {
   task: Task;

@@ -1,4 +1,6 @@
 import type { Message } from '@shared/types/chat';
+import { useState } from 'react';
+import { Check, Copy } from 'lucide-react';
 
 interface MessageBubbleProps {
   message: Message;
@@ -7,6 +9,17 @@ interface MessageBubbleProps {
 export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === 'user';
   const isSystem = message.role === 'system';
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('复制失败:', error);
+    }
+  };
 
   if (isSystem) {
     return (
@@ -19,29 +32,46 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   }
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 group`}>
       <div
-        className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+        className={`max-w-[80%] rounded-2xl px-4 py-3 relative ${
           isUser
             ? 'bg-chat-user-bubble text-white'
             : 'bg-chat-ai-bubble text-text-primary'
         }`}
       >
-        <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+        {/* 复制按钮 */}
+        {!isUser && (
+          <button
+            onClick={handleCopy}
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg bg-black/10 hover:bg-black/20"
+            title={copied ? '已复制' : '复制'}
+          >
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+          </button>
+        )}
+
+        <div className="text-sm leading-relaxed whitespace-pre-wrap break-words pr-8">
           {message.content}
         </div>
 
         {/* 元数据 */}
         {message.metadata && (
-          <div className="mt-2 pt-2 border-t border-white/10 text-xs opacity-70">
+          <div className="mt-2 pt-2 border-t border-white/10 text-xs opacity-70 flex flex-wrap gap-2">
             {message.metadata.model && (
-              <span className="mr-3">{message.metadata.model}</span>
-            )}
-            {message.metadata.tokens && (
-              <span className="mr-3">{message.metadata.tokens} tokens</span>
+              <span className="px-2 py-0.5 bg-black/5 rounded-full font-mono">
+                {message.metadata.model}
+              </span>
             )}
             {message.metadata.thinkingTime && (
-              <span>{(message.metadata.thinkingTime / 1000).toFixed(1)}s</span>
+              <span className="px-2 py-0.5 bg-black/5 rounded-full">
+                ⏱️ {parseFloat((message.metadata.thinkingTime / 1000).toFixed(1))}s
+              </span>
+            )}
+            {message.metadata.tokens && (
+              <span className="px-2 py-0.5 bg-black/5 rounded-full">
+                📊 {message.metadata.tokens} tokens
+              </span>
             )}
           </div>
         )}

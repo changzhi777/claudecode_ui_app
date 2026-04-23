@@ -2,7 +2,7 @@
  * 会话历史侧边栏
  */
 
-import { useChatStore } from '@stores/chatStore';
+import { useChatStore } from '@stores';
 import { MessageSquare, Trash2, Plus, Clock, Search } from 'lucide-react';
 import { useState } from 'react';
 import { ExportButton } from '../../components/ExportButton';

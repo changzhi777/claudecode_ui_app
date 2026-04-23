@@ -1,4 +1,4 @@
-import { useEditorStore } from '@stores/editorStore';
+import { useEditorStore } from '@stores';
 import { EditorTab } from './EditorTab';
 import { Plus } from 'lucide-react';
 

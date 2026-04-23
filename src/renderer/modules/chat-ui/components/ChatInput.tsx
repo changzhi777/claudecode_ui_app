@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { Send, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { CommandAutocomplete } from './CommandAutocomplete';
 
 /**
  * 连接状态
@@ -20,6 +21,8 @@ export function ChatInput({
   connectionState = 'connected' // 默认已连接
 }: ChatInputProps) {
   const [content, setContent] = useState('');
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [autocompleteQuery, setAutocompleteQuery] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 根据连接状态判断是否禁用
@@ -37,6 +40,21 @@ export function ChatInput({
     autoResize();
   }, [content]);
 
+  // 检测斜杠命令并自动显示补全
+  useEffect(() => {
+    const cursorPosition = textareaRef.current?.selectionStart || content.length;
+    const textBeforeCursor = content.substring(0, cursorPosition);
+    const lastWord = textBeforeCursor.split(/\s+/).pop() || '';
+
+    if (lastWord.startsWith('/')) {
+      setAutocompleteQuery(lastWord);
+      setShowAutocomplete(true);
+    } else {
+      setShowAutocomplete(false);
+      setAutocompleteQuery('');
+    }
+  }, [content]);
+
   const handleSend = () => {
     const trimmed = content.trim();
     if (trimmed && !disabled) {
@@ -49,10 +67,45 @@ export function ChatInput({
     }
   };
 
+  const handleSelectCommand = (command: string) => {
+    const cursorPosition = textareaRef.current?.selectionStart || content.length;
+    const textBeforeCursor = content.substring(0, cursorPosition);
+    const textAfterCursor = content.substring(cursorPosition);
+
+    // 找到最后一个空格的位置
+    const lastSpaceIndex = textBeforeCursor.lastIndexOf(' ');
+    const newText = textBeforeCursor.substring(0, lastSpaceIndex + 1) + command + ' ' + textAfterCursor;
+
+    setContent(newText);
+    setShowAutocomplete(false);
+    setAutocompleteQuery('');
+
+    // 聚焦回输入框并设置光标位置
+    setTimeout(() => {
+      const newCursorPosition = lastSpaceIndex + command.length + 2;
+      textareaRef.current?.setSelectionRange(newCursorPosition, newCursorPosition);
+      textareaRef.current?.focus();
+    }, 0);
+  };
+
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      // 触发自动补全
+      const cursorPosition = textareaRef.current?.selectionStart || 0;
+      const textBeforeCursor = content.substring(0, cursorPosition);
+      const lastWord = textBeforeCursor.split(/\s+/).pop() || '';
+
+      if (lastWord.startsWith('/')) {
+        setAutocompleteQuery(lastWord);
+        setShowAutocomplete(true);
+      }
+    } else if (e.key === 'Escape') {
+      setShowAutocomplete(false);
+      setAutocompleteQuery('');
     }
   };
 
@@ -97,6 +150,18 @@ export function ChatInput({
 
       <div className="max-w-4xl mx-auto flex items-end gap-3">
         <div className="flex-1 relative">
+          {/* 命令自动补全 */}
+          {showAutocomplete && (
+            <CommandAutocomplete
+              query={autocompleteQuery}
+              onSelect={handleSelectCommand}
+              onClose={() => {
+                setShowAutocomplete(false);
+                setAutocompleteQuery('');
+              }}
+            />
+          )}
+
           <textarea
             ref={textareaRef}
             value={content}

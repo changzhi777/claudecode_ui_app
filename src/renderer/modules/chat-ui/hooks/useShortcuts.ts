@@ -3,7 +3,7 @@
  */
 
 import { useEffect } from 'react';
-import { useChatStore } from '@stores/chatStore';
+import { useChatStore } from '@stores';
 
 /**
  * 快捷键类型定义

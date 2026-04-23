@@ -1,13 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ChatMessageList } from './components/ChatMessageList';
 import { ChatInput } from './components/ChatInput';
 import { EmptyState } from './components/EmptyState';
-import { useChatStore } from '@stores/chatStore';
-import { Plus } from 'lucide-react';
+import { useChatStore } from '@stores';
+import { Plus, Trash2, Download, History } from 'lucide-react';
+import { toast } from '@components/Toast';
 
 export function ChatUI() {
-  const { getCurrentSession, createSession, addMessage, setLoading } = useChatStore();
+  const { getCurrentSession, createSession, addMessage, setLoading, clearMessages } = useChatStore();
   const session = getCurrentSession();
+  const [showHistory, setShowHistory] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   // 初始化：如果没有会话，创建一个
   useEffect(() => {
@@ -48,7 +51,7 @@ export function ChatUI() {
             role: 'assistant',
             content: `抱歉，遇到了一些问题：${response.error}`,
             metadata: {
-              model: 'claude-3.5-sonnet',
+              model: response.data?.model || 'unknown',
               tokens: 0,
               thinkingTime: 0,
             },
@@ -66,7 +69,7 @@ export function ChatUI() {
           role: 'assistant',
           content: `我收到了你的消息："${content}"\n\n[模拟响应 - CLI 集成中]\n\n错误信息: ${(error as Error).message}`,
           metadata: {
-            model: 'claude-3.5-sonnet',
+            model: 'unknown',
             tokens: 42,
             thinkingTime: 1000,
           },
@@ -74,6 +77,45 @@ export function ChatUI() {
       }, 500);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    if (!session || session.messages.length === 0) return;
+
+    setExporting(true);
+    try {
+      const response = await window.electronAPI.invoke('chat:saveAsMarkdown', {
+        sessionId: session.id,
+        title: session.title,
+        messages: session.messages,
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
+      });
+
+      if (response.success) {
+        toast.success('导出成功', `对话已保存到 ${response.filename}`);
+      } else {
+        toast.error('导出失败', response.error);
+      }
+    } catch (error) {
+      toast.error('导出异常', (error as Error).message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleShowHistory = async () => {
+    setShowHistory(!showHistory);
+    if (!showHistory) {
+      try {
+        const response = await window.electronAPI.invoke('chat:getHistory');
+        if (response.success) {
+          console.log('历史记录:', response.chats);
+        }
+      } catch (error) {
+        console.error('获取历史失败:', error);
+      }
     }
   };
 
@@ -98,11 +140,37 @@ export function ChatUI() {
 
         <div className="flex items-center gap-2">
           <button
-            className="px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors"
-            title="导出对话（即将推出）"
+            onClick={handleShowHistory}
+            className="px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors flex items-center gap-1"
+            title="历史记录"
           >
-            导出
+            <History size={14} />
+            历史
           </button>
+
+          {session && session.messages.length > 0 && (
+            <>
+              <button
+                onClick={() => clearMessages()}
+                className="px-3 py-1.5 text-sm text-text-secondary hover:text-red-500 hover:bg-bg-tertiary rounded-lg transition-colors flex items-center gap-1"
+                title="清空对话"
+              >
+                <Trash2 size={14} />
+                清空
+              </button>
+
+              <button
+                onClick={handleExport}
+                disabled={exporting}
+                className="px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors flex items-center gap-1 disabled:opacity-50"
+                title="导出对话为 Markdown"
+              >
+                <Download size={14} />
+                {exporting ? '导出中...' : '导出'}
+              </button>
+            </>
+          )}
+
           <button
             className="px-3 py-1.5 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors"
             title="设置（即将推出）"

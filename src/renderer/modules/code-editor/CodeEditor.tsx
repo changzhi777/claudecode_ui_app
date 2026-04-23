@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
-import { useEditorStore } from '@stores/editorStore';
+import { useEditorStore } from '@stores';
 import { EditorTabBar } from './components/EditorTabBar';
 import { Save, RefreshCw } from 'lucide-react';
 import { getFileOperationHandler } from '../../services/FileOperationHandler';

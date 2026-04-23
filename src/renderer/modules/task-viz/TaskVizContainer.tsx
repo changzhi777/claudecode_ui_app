@@ -1,4 +1,4 @@
-import { useTaskStore } from '@stores/taskStore';
+import { useTaskStore } from '@stores';
 import { TaskViz } from './TaskViz';
 import { useTaskDemo } from './hooks/useTaskDemo';
 

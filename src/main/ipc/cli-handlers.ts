@@ -8,6 +8,7 @@ import { IPCLogger } from '../utils/IPCLogger';
  */
 async function executeClaudeCLI(prompt: string): Promise<{
   text: string;
+  model: string;
   duration: number;
 }> {
   return new Promise((resolve, reject) => {
@@ -37,8 +38,14 @@ async function executeClaudeCLI(prompt: string): Promise<{
       const duration = Date.now() - startTime;
 
       if (code === 0) {
+        const text = stdout.trim();
+
+        // 智能模型检测 - 从响应中提取实际使用的模型
+        let model = detectModel(text);
+
         resolve({
-          text: stdout.trim(),
+          text,
+          model,
           duration,
         });
       } else {
@@ -55,6 +62,62 @@ async function executeClaudeCLI(prompt: string): Promise<{
       reject(new Error('CLI 执行超时'));
     }, 120000);
   });
+}
+
+/**
+ * 智能模型检测
+ * 根据响应内容推断实际使用的 Claude 模型
+ */
+function detectModel(response: string): string {
+  // 检查响应特征
+  const lower = response.toLowerCase();
+
+  // Claude Sonnet 4.6 (最新) 特征 - 优先级最高
+  if (
+    lower.includes('claude sonnet 4.6') ||
+    response.includes('claude-sonnet-4-6') ||
+    lower.includes('claude 4.6') ||
+    response.includes('claude-4-6')
+  ) {
+    return 'claude-sonnet-4-6';
+  }
+
+  // 检测 engineer-professional 输出样式（使用 Claude Sonnet 4.6）
+  if (
+    lower.includes('engineer-professional') ||
+    lower.includes('工程师专业版') ||
+    lower.includes('engineer professional')
+  ) {
+    return 'claude-sonnet-4-6';
+  }
+
+  // Claude 3.5 Sonnet 特征
+  if (lower.includes('claude 3.5') || response.includes('claude-3.5')) {
+    return 'claude-3.5-sonnet';
+  }
+
+  // Claude 3 Opus 特征
+  if (response.includes('claude-3-opus') || lower.includes('claude 3 opus')) {
+    return 'claude-3-opus-20250507';
+  }
+
+  // 检查配置文件中的默认模型
+  try {
+    const configPath = require('os').homedir() + '/.claude/settings.json';
+    const fs = require('fs');
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      if (config.model) {
+        // 返回配置的模型
+        return config.model;
+      }
+    }
+  } catch (error) {
+    // 忽略配置读取错误
+  }
+
+  // 默认返回当前最新模型
+  return 'claude-sonnet-4-6';
 }
 
 /**
@@ -145,7 +208,7 @@ export class CLIPCHandlers {
           success: true,
           data: {
             response: response.text,
-            model: 'claude-3.5-sonnet',
+            model: response.model,
             tokens: 0, // CLI 暂时不提供 token 信息
             duration: response.duration,
             timestamp: Date.now()
@@ -158,7 +221,7 @@ export class CLIPCHandlers {
           error: (error as Error).message,
           data: {
             response: `错误: ${(error as Error).message}`,
-            model: 'claude-3.5-sonnet',
+            model: 'unknown',
             tokens: 0,
             duration: 0,
             timestamp: Date.now()

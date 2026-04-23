@@ -4,7 +4,7 @@ import type { Task, TaskGroup, TaskState, TaskActions } from '@shared/types/task
 
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
-const getTaskIcon = (type: Task['type']) => {
+export const getTaskIcon = (type: Task['type']) => {
   const icons = {
     thinking: '🤔',
     reading: '📖',
@@ -16,7 +16,7 @@ const getTaskIcon = (type: Task['type']) => {
   return icons[type];
 };
 
-const getTaskColor = (type: Task['type']) => {
+export const getTaskColor = (type: Task['type']) => {
   const colors = {
     thinking: '#dfa88f', // 暖桃色
     reading: '#9fbbe0', // 软蓝
@@ -112,5 +112,3 @@ export const useTaskStore = create<TaskState & TaskActions>()(
     }
   )
 );
-
-export { getTaskIcon, getTaskColor };

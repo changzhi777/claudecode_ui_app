@@ -27,6 +27,7 @@
       "@shared/*": ["src/shared/*"],
       "@renderer/*": ["src/renderer/*"],
       "@main/*": ["src/main/*"],
+      "@stores": ["src/stores/index"],
       "@stores/*": ["src/stores/*"],
       "@components/*": ["src/renderer/components/*"]
     }

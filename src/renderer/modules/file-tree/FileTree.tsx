@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useEditorStore } from '@stores/editorStore';
+import { useEditorStore } from '@stores';
 import { FileTreeItem } from './components/FileTreeItem';
 import { Files } from 'lucide-react';
 import { getFileOperationHandler } from '../../services/FileOperationHandler';

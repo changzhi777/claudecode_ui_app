@@ -19,6 +19,7 @@ interface ChatActions {
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
   updateMessage: (messageId: string, content: string) => void;
   deleteMessage: (messageId: string) => void;
+  clearMessages: () => void;
 
   // 状态管理
   setLoading: (loading: boolean) => void;
@@ -131,6 +132,21 @@ export const useChatStore = create<ChatState & ChatActions>()(
             messages: session.messages.filter((msg) => msg.id !== messageId),
             updatedAt: Date.now(),
           })),
+        }));
+      },
+
+      clearMessages: () => {
+        set((state) => ({
+          sessions: state.sessions.map((session) => {
+            if (session.id === state.currentSessionId) {
+              return {
+                ...session,
+                messages: [],
+                updatedAt: Date.now(),
+              };
+            }
+            return session;
+          }),
         }));
       },
 

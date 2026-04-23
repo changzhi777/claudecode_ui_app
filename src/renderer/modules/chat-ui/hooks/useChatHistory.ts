@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useChatStore } from '@stores/chatStore';
+import { useChatStore } from '@stores';
 
 interface ChatHistory {
   filename: string;
